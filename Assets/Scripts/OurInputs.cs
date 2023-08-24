@@ -62,6 +62,15 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Interact"",
+                    ""type"": ""Button"",
+                    ""id"": ""da133792-7e94-4a1f-a2b2-891cf81b98dd"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -251,6 +260,17 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Camera"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9b18526d-e7e2-4904-b43f-042c0b1eb7c9"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""Interact"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -280,6 +300,7 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         m_Core_Move = m_Core.FindAction("Move", throwIfNotFound: true);
         m_Core_CameraMouse = m_Core.FindAction("CameraMouse", throwIfNotFound: true);
         m_Core_Camera = m_Core.FindAction("Camera", throwIfNotFound: true);
+        m_Core_Interact = m_Core.FindAction("Interact", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -345,6 +366,7 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Core_Move;
     private readonly InputAction m_Core_CameraMouse;
     private readonly InputAction m_Core_Camera;
+    private readonly InputAction m_Core_Interact;
     public struct CoreActions
     {
         private @OurInputs m_Wrapper;
@@ -353,6 +375,7 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         public InputAction @Move => m_Wrapper.m_Core_Move;
         public InputAction @CameraMouse => m_Wrapper.m_Core_CameraMouse;
         public InputAction @Camera => m_Wrapper.m_Core_Camera;
+        public InputAction @Interact => m_Wrapper.m_Core_Interact;
         public InputActionMap Get() { return m_Wrapper.m_Core; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -374,6 +397,9 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
             @Camera.started += instance.OnCamera;
             @Camera.performed += instance.OnCamera;
             @Camera.canceled += instance.OnCamera;
+            @Interact.started += instance.OnInteract;
+            @Interact.performed += instance.OnInteract;
+            @Interact.canceled += instance.OnInteract;
         }
 
         private void UnregisterCallbacks(ICoreActions instance)
@@ -390,6 +416,9 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
             @Camera.started -= instance.OnCamera;
             @Camera.performed -= instance.OnCamera;
             @Camera.canceled -= instance.OnCamera;
+            @Interact.started -= instance.OnInteract;
+            @Interact.performed -= instance.OnInteract;
+            @Interact.canceled -= instance.OnInteract;
         }
 
         public void RemoveCallbacks(ICoreActions instance)
@@ -422,5 +451,6 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         void OnMove(InputAction.CallbackContext context);
         void OnCameraMouse(InputAction.CallbackContext context);
         void OnCamera(InputAction.CallbackContext context);
+        void OnInteract(InputAction.CallbackContext context);
     }
 }
