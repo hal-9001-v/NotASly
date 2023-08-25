@@ -15,6 +15,7 @@ public class Gripper : MonoBehaviour
     [SerializeField] AnimationCurve gripGravityProgression;
     [SerializeField][Range(0, 10)] float minVelocity = 1f;
     [SerializeField] Timer timeInWall;
+    [SerializeField] Timer gripCooldown;
     [SerializeField][Range(0, 1)] float distanceToWall = 0.15f;
     [SerializeField][Range(0, 1)] float pressedTime = 0.5f;
     [SerializeField][Range(0, 1)] float deadzone = 0.2f;
@@ -23,8 +24,14 @@ public class Gripper : MonoBehaviour
     Vector3 gripPosition;
 
     GrippableWall currentWall;
+    GripPoint currentGripPoint;
+
+    public bool IsInWall { get => currentWall != null; }
+    public bool IsInGripPoint { get => currentGripPoint != null; }
+
     Vector3 moveVelocity;
-    public Vector3 GripNormal { get => currentWall.Normal; }
+    public Vector3 MoveVelocity { get { return moveVelocity; } }
+    public Vector3 GripNormal { get => currentWall != null ? currentWall.Normal : currentGripPoint.Normal; }
 
     CharacterController characterController => GetComponent<CharacterController>();
 
@@ -35,7 +42,6 @@ public class Gripper : MonoBehaviour
         Idle,
         Moving,
     }
-
 
     private void FixedUpdate()
     {
@@ -53,9 +59,15 @@ public class Gripper : MonoBehaviour
         }
     }
 
+    public void Grip(GripPoint gripPoint)
+    {
+        currentGripPoint = gripPoint;
+        currentWall = null;
+    }
     public void Grip(GrippableWall grippableWall)
     {
         currentWall = grippableWall;
+        currentGripPoint = null;
     }
 
     public void Release()
@@ -65,12 +77,12 @@ public class Gripper : MonoBehaviour
 
     public bool Check()
     {
-        if (currentWall == null)
+        if (currentWall == null && currentGripPoint == null)
         {
             return false;
         }
 
-        if (Physics.Raycast(transform.position, -currentWall.Normal, out RaycastHit hit, gripDistance, gripLayer))
+        if (Physics.Raycast(transform.position, -GripNormal, out RaycastHit hit, gripDistance, gripLayer))
         {
             gripPosition = hit.point;
             currentState = States.Idle;

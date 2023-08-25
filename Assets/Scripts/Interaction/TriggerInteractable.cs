@@ -4,26 +4,31 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-[RequireComponent(typeof(Collider))]
 public class TriggerInteractable : MonoBehaviour
 {
-    [SerializeField] UnityEvent<Interactor> onEnterEvent;
-    [SerializeField] UnityEvent<Interactor> onExitEvent;
+    [SerializeField] protected UnityEvent<Interactor> onEnterEvent;
+    [SerializeField] protected UnityEvent<Interactor> onExitEvent;
 
     public Action<Interactor> OnEnterAction;
     public Action<Interactor> OnExitAction;
 
-    [SerializeField] bool debug;
+    [SerializeField] protected bool debug;
 
+    [HideInInspector] public List<Interactor> Interactors;
+
+    private void Awake()
+    {
+        Interactors = new List<Interactor>();
+    }
 
     private void OnTriggerEnter(Collider other)
     {
         Interactor interactor = other.GetComponent<Interactor>();
         if (interactor != null)
         {
+            Interactors.Add(interactor);
             onEnterEvent.Invoke(interactor);
             OnEnterAction?.Invoke(interactor);
-
             if (debug)
             {
                 Debug.Log("TriggerInteractable: " + name + " enter triggered by " + interactor.name);
@@ -36,6 +41,7 @@ public class TriggerInteractable : MonoBehaviour
         Interactor interactor = other.GetComponent<Interactor>();
         if (interactor != null)
         {
+            Interactors.Remove(interactor);
             onExitEvent.Invoke(interactor);
             OnExitAction?.Invoke(interactor);
 

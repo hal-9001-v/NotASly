@@ -20,7 +20,7 @@ public class Mover : MonoBehaviour
     {
         get
         {
-            if (Physics.Raycast(transform.position, Vector3.down, out var hit, controller.height * 0.55f, groundMask))
+            if (ySpeed <= 0 && Physics.Raycast(transform.position, Vector3.down, out var hit, controller.height * 0.55f, groundMask))
             {
                 return true;
             }
@@ -92,6 +92,8 @@ public class Mover : MonoBehaviour
 
     public void Launch(Vector3 velocity)
     {
+        enabled = true;
+
         ySpeed = velocity.y;
 
         launchVelocity = velocity;

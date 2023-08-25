@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(SafeGroundChecker))]
 [RequireComponent(typeof(Roper))]
 [RequireComponent(typeof(Aligner))]
+[RequireComponent(typeof(Venter))]
 public class Player : MonoBehaviour
 {
     [SerializeField] Transform cameraFollow;
@@ -16,8 +17,12 @@ public class Player : MonoBehaviour
     Roper roper => GetComponent<Roper>();
     Gripper gripper => GetComponent<Gripper>();
     Aligner aligner => GetComponent<Aligner>();
+    Venter venter => GetComponent<Venter>();
+    CharacterController characterController => GetComponent<CharacterController>();
 
     SafeGroundChecker safeGroundChecker => GetComponent<SafeGroundChecker>();
+
+    CameraSelector cameraSelector => FindObjectOfType<CameraSelector>();
 
     [Header("Movement")]
     [SerializeField] float cameraSpeed = 5f;
@@ -26,13 +31,22 @@ public class Player : MonoBehaviour
     [Header("Grip")]
     [SerializeField] Timer gripStayTimer;
     [SerializeField] Timer gripStartMoveTimer;
+    [SerializeField] Timer gripCooldown;
 
     [SerializeField][Range(0, 1)] float wallJumpUpFactor = 0.8f;
+    [SerializeField][Range(0, 1)] float movingWallJumpUpFactor = 0.8f;
+
+    [Header("Vent")]
+    float defaultControllerHeight;
+    float defaultControllerRadius = 0.25f;
+
+    [SerializeField][Range(0, 2)] float ventControllerHeight = 0.25f;
+    [SerializeField][Range(0, 2)] float ventControllerRadius = 0.25f;
 
 
     Vector2 cameraDirection;
 
-    States currentState;
+    [SerializeField] States currentState;
 
     Coroutine stunCoroutine;
 
@@ -47,10 +61,13 @@ public class Player : MonoBehaviour
         Stunned,
         Gripped,
         GrippedMoving,
+        Venting,
     }
 
     private void Awake()
     {
+        defaultControllerHeight = characterController.height;
+        defaultControllerRadius = characterController.radius;
         ChangeState(States.Move);
     }
 
@@ -68,14 +85,18 @@ public class Player : MonoBehaviour
     {
         var rotatedDirection = cameraFollow.rotation * direction;
 
-
+        var gripReady = gripCooldown.UpdateTimer();
         switch (currentState)
         {
             case States.Move:
                 mover.Move(rotatedDirection);
-                if (gripper.Check())
+
+                if (gripReady)
                 {
-                    ChangeState(States.Gripped);
+                    if (mover.IsGrounded == false && gripper.Check())
+                    {
+                        ChangeState(States.Gripped);
+                    }
                 }
                 break;
 
@@ -103,16 +124,19 @@ public class Player : MonoBehaviour
                     ChangeState(States.Fall);
                 }
 
-                if (direction.magnitude > 0.25f)
+                if (gripper.IsInWall)
                 {
-                    if (gripStartMoveTimer.UpdateTimer())
+                    if (direction.magnitude > 0.25f)
                     {
-                        ChangeState(States.GrippedMoving);
+                        if (gripStartMoveTimer.UpdateTimer())
+                        {
+                            ChangeState(States.GrippedMoving);
+                        }
                     }
-                }
-                else
-                {
-                    gripStartMoveTimer.ResetTimer();
+                    else
+                    {
+                        gripStartMoveTimer.ResetTimer();
+                    }
                 }
                 break;
             case States.GrippedMoving:
@@ -120,6 +144,14 @@ public class Player : MonoBehaviour
                 {
                     ChangeState(States.Fall);
                 };
+                break;
+            case States.Venting:
+                venter.Move(cameraFollow.rotation * direction);
+
+                if (venter.IsInEntry == false && venter.IsInside == false)
+                {
+                    ChangeState(States.Move);
+                }
                 break;
         }
 
@@ -154,12 +186,22 @@ public class Player : MonoBehaviour
                 mover.Jump();
                 break;
             case States.Gripped:
-            case States.GrippedMoving:
-                var normal = gripper.GripNormal;
-
-                mover.enabled = true;
-                mover.Launch(Vector3.Lerp(normal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
+                mover.Launch(Vector3.Lerp(gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
                 ChangeState(States.Move);
+                break;
+            case States.GrippedMoving:
+                var moveDirection = gripper.MoveVelocity;
+                moveDirection.y = 0;
+                moveDirection.Normalize();
+
+                var jumpDirection = Vector3.Lerp(gripper.GripNormal, moveDirection, 0.75f);
+
+                mover.Launch(Vector3.Lerp(jumpDirection, Vector3.up, movingWallJumpUpFactor) * wallJumpSpeed);
+                ChangeState(States.Move);
+
+                break;
+
+            case States.Venting:
                 break;
 
         }
@@ -170,6 +212,11 @@ public class Player : MonoBehaviour
         if (roper.Check())
         {
             Align(roper.RopePosition, States.Rope);
+        }
+
+        if (venter.Check())
+        {
+            ChangeState(States.Venting);
         }
     }
 
@@ -200,12 +247,26 @@ public class Player : MonoBehaviour
                 roper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
+                venter.enabled = false;
+
+                gripCooldown.ResetTimer();
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
             case States.Fall:
                 mover.enabled = true;
                 roper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
+                venter.enabled = false;
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
 
             case States.Rope:
@@ -213,18 +274,36 @@ public class Player : MonoBehaviour
                 roper.enabled = true;
                 aligner.enabled = false;
                 gripper.enabled = false;
+                venter.enabled = false;
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
             case States.Stunned:
                 mover.enabled = true;
                 roper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
+                venter.enabled = false;
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
             case States.Aligning:
                 mover.enabled = false;
                 roper.enabled = false;
                 aligner.enabled = true;
                 gripper.enabled = false;
+                venter.enabled = false;
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
 
             case States.Gripped:
@@ -232,17 +311,44 @@ public class Player : MonoBehaviour
                 roper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
+                venter.enabled = false;
 
                 gripStayTimer.ResetTimer();
                 gripStartMoveTimer.ResetTimer();
+                gripCooldown.ResetTimer();
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
                 break;
             case States.GrippedMoving:
                 mover.enabled = false;
                 roper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
+                venter.enabled = false;
 
+                gripCooldown.ResetTimer();
                 gripper.SetMoveDirection(cameraFollow.rotation * direction);
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
+                break;
+
+            case States.Venting:
+                mover.enabled = false;
+                roper.enabled = false;
+                aligner.enabled = false;
+                gripper.enabled = false;
+                venter.enabled = true;
+
+                characterController.height = ventControllerHeight;
+                characterController.radius = ventControllerRadius;
+
+                cameraSelector.UseVentCamera();
                 break;
         }
         currentState = newState;
@@ -254,4 +360,10 @@ public class Player : MonoBehaviour
         ChangeState(States.Move);
     }
 
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, ventControllerHeight);
+    }
 }
