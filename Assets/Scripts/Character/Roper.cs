@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor.Splines;
 using UnityEngine;
-using UnityEngine.Splines;
 
-public class Roper : MonoBehaviour
+public class Roper : MonoBehaviour, IPathFollower
 {
     [SerializeField][Range(1, 10)] float speed;
     [SerializeField][Range(0, 5)] float checkDistance;
 
-    public Vector3 RopePosition => currentRope.GetPosition(t);
+    public Vector3 RopePosition => currentRope.Path.GetPosition(t);
 
     Rope[] ropes => FindObjectsOfType<Rope>();
+
+    public bool Attatched => currentRope != null;
+
+    public float CheckDistance => checkDistance;
 
     Rope currentRope;
     float t;
@@ -20,22 +20,15 @@ public class Roper : MonoBehaviour
 
     public bool Check()
     {
-        foreach (var rope in ropes)
+        var closest = GetClosestPath();
+        if (closest != null)
         {
-            var closest = rope.GetClosestPoint(transform.position);
-            Debug.DrawLine(transform.position, closest, Color.red);
-            if (closest.y < transform.position.y)
-            {
-                if (Vector2.Distance(new Vector3(closest.x, closest.z), new Vector3(transform.position.x, transform.position.z)) < checkDistance)
-                {
-                    currentRope = rope;
-                    t = rope.GetClosestT(transform.position);
-                    return true;
-                }
-            }
+            return true;
         }
-
-        return false;
+        else
+        {
+            return false;
+        }
     }
 
     public void Move(Vector3 direction)
@@ -47,14 +40,48 @@ public class Roper : MonoBehaviour
     {
         if (currentRope == null)
             return;
+
         if (direction.magnitude > 0.1f)
-            transform.position = currentRope.GetPosition(t, out t, direction, speed * Time.deltaTime);
+            transform.position = currentRope.Path.GetPosition(t, out t, direction, speed * Time.deltaTime);
         else
-            transform.position = currentRope.GetPosition(t);
+            transform.position = currentRope.Path.GetPosition(t);
     }
 
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(transform.position, checkDistance);
+    }
+
+    public void Attach()
+    {
+        currentRope = (Rope)GetClosestPath();
+        t = currentRope.Path.GetClosestT(transform.position);
+    }
+
+    public void Dettach()
+    {
+        currentRope = null;
+    }
+
+    public IPathInteractable GetClosestPath()
+    {
+        Rope closest = null;
+        float closesDistance = float.MaxValue;
+        foreach (var rope in ropes)
+        {
+            var distance = Vector3.Distance(transform.position, rope.GetClosestPoint(transform.position));
+            if (distance < checkDistance && distance < closesDistance)
+            {
+                closesDistance = distance;
+                closest = rope;
+            }
+        }
+
+        return closest;
+    }
+
+    public void RawMove(Vector2 input)
+    {
+        throw new System.NotImplementedException();
     }
 }

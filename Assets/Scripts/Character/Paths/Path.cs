@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
 
-public class Rope : MonoBehaviour
+public class Path : MonoBehaviour
 {
     SplineContainer splineContainer => GetComponent<SplineContainer>();
 
@@ -15,10 +15,17 @@ public class Rope : MonoBehaviour
     public Vector3 GetPosition(float t, out float newT, Vector3 direction, float displacement)
     {
         var sign = GetSign(t, direction);
-        Debug.Log(sign);
+
         var delta = displacement / splineContainer.Spline.GetLength();
         newT = t + delta * sign;
+        newT = Mathf.Clamp(newT, 0, 1);
         return splineContainer.EvaluatePosition(newT);
+    }
+
+    public float GetTWithDisplacement(float t, float displacement)
+    {
+        var delta = displacement / splineContainer.Spline.GetLength();
+        return Mathf.Clamp01(t + delta);
     }
 
     public float GetSign(float t, Vector3 direction)

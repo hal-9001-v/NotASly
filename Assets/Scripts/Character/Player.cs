@@ -15,6 +15,7 @@ public class Player : MonoBehaviour
 
     Mover mover => GetComponent<Mover>();
     Roper roper => GetComponent<Roper>();
+    Piper piper => GetComponent<Piper>();
     Gripper gripper => GetComponent<Gripper>();
     Aligner aligner => GetComponent<Aligner>();
     Venter venter => GetComponent<Venter>();
@@ -51,12 +52,13 @@ public class Player : MonoBehaviour
     Coroutine stunCoroutine;
 
     Vector3 direction;
-
+    Vector2 input;
     enum States
     {
         Move,
         Fall,
         Rope,
+        Pipe,
         Aligning,
         Stunned,
         Gripped,
@@ -113,6 +115,9 @@ public class Player : MonoBehaviour
             case States.Rope:
                 roper.Move(rotatedDirection);
                 break;
+            case States.Pipe:
+                piper.RawMove(input);
+                break;
             case States.Aligning:
 
                 break;
@@ -164,7 +169,7 @@ public class Player : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
-        var input = value.Get<Vector2>();
+        input = value.Get<Vector2>();
         direction = new Vector3(input.x, 0, input.y);
     }
 
@@ -182,6 +187,10 @@ public class Player : MonoBehaviour
                     mover.Jump();
                 break;
             case States.Rope:
+                ChangeState(States.Move);
+                mover.Jump();
+                break;
+            case States.Pipe:
                 ChangeState(States.Move);
                 mover.Jump();
                 break;
@@ -211,7 +220,14 @@ public class Player : MonoBehaviour
     {
         if (roper.Check())
         {
+            roper.Attach();
             Align(roper.RopePosition, States.Rope);
+        }
+
+        if (piper.Check())
+        {
+            piper.Attach();
+            Align(piper.PipePosition, States.Pipe);
         }
 
         if (venter.Check())
@@ -245,6 +261,7 @@ public class Player : MonoBehaviour
             case States.Move:
                 mover.enabled = true;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -259,6 +276,7 @@ public class Player : MonoBehaviour
             case States.Fall:
                 mover.enabled = true;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -272,6 +290,20 @@ public class Player : MonoBehaviour
             case States.Rope:
                 mover.enabled = false;
                 roper.enabled = true;
+                piper.enabled = false;
+                aligner.enabled = false;
+                gripper.enabled = false;
+                venter.enabled = false;
+
+                characterController.height = defaultControllerHeight;
+                characterController.radius = defaultControllerRadius;
+
+                cameraSelector.UseFollowCamera();
+                break;
+            case States.Pipe:
+                mover.enabled = false;
+                roper.enabled = false;
+                piper.enabled = true;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -284,6 +316,7 @@ public class Player : MonoBehaviour
             case States.Stunned:
                 mover.enabled = true;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -296,6 +329,7 @@ public class Player : MonoBehaviour
             case States.Aligning:
                 mover.enabled = false;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = true;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -309,6 +343,7 @@ public class Player : MonoBehaviour
             case States.Gripped:
                 mover.enabled = false;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
                 venter.enabled = false;
@@ -325,6 +360,7 @@ public class Player : MonoBehaviour
             case States.GrippedMoving:
                 mover.enabled = false;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
                 venter.enabled = false;
@@ -341,6 +377,7 @@ public class Player : MonoBehaviour
             case States.Venting:
                 mover.enabled = false;
                 roper.enabled = false;
+                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = true;
