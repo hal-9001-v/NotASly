@@ -10,4 +10,5 @@ public interface IPathInteractable
 
     public Vector3 GetClosestPoint(Vector3 point);
 
+    public float GetClosestT(Vector3 point);
 }

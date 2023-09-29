@@ -16,6 +16,7 @@ public class Player : MonoBehaviour
     Mover mover => GetComponent<Mover>();
     Roper roper => GetComponent<Roper>();
     Piper piper => GetComponent<Piper>();
+    FallRoper fallRoper => GetComponent<FallRoper>();
     Gripper gripper => GetComponent<Gripper>();
     Aligner aligner => GetComponent<Aligner>();
     Venter venter => GetComponent<Venter>();
@@ -53,12 +54,13 @@ public class Player : MonoBehaviour
 
     Vector3 direction;
     Vector2 input;
+
+    IPathFollower currentPathFollower;
     enum States
     {
         Move,
         Fall,
-        Rope,
-        Pipe,
+        Path,
         Aligning,
         Stunned,
         Gripped,
@@ -112,11 +114,13 @@ public class Player : MonoBehaviour
                     mover.Move(Vector3.zero);
                 }
                 break;
-            case States.Rope:
-                roper.Move(rotatedDirection);
-                break;
-            case States.Pipe:
-                piper.RawMove(input);
+            case States.Path:
+                currentPathFollower.Move(input, rotatedDirection);
+                if (currentPathFollower.Attatched == false)
+                {
+                    ChangeState(States.Move);
+                }
+
                 break;
             case States.Aligning:
 
@@ -186,11 +190,7 @@ public class Player : MonoBehaviour
                 if (mover.IsGrounded)
                     mover.Jump();
                 break;
-            case States.Rope:
-                ChangeState(States.Move);
-                mover.Jump();
-                break;
-            case States.Pipe:
+            case States.Path:
                 ChangeState(States.Move);
                 mover.Jump();
                 break;
@@ -220,20 +220,28 @@ public class Player : MonoBehaviour
     {
         if (roper.Check())
         {
-            roper.Attach();
-            Align(roper.RopePosition, States.Rope);
+            UsePathFollower(roper);
         }
-
-        if (piper.Check())
+        else if (piper.Check())
         {
-            piper.Attach();
-            Align(piper.PipePosition, States.Pipe);
+            UsePathFollower(piper);
+        }
+        else if (fallRoper.Check())
+        {
+            UsePathFollower(fallRoper);
         }
 
         if (venter.Check())
         {
             ChangeState(States.Venting);
         }
+    }
+
+    void UsePathFollower(IPathFollower follower)
+    {
+        currentPathFollower = follower;
+        follower.Attach();
+        Align(follower.GetClosestPoint(), States.Path);
     }
 
     void Align(Vector3 position, States nextState)
@@ -260,8 +268,6 @@ public class Player : MonoBehaviour
         {
             case States.Move:
                 mover.enabled = true;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -275,8 +281,6 @@ public class Player : MonoBehaviour
                 break;
             case States.Fall:
                 mover.enabled = true;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -287,10 +291,8 @@ public class Player : MonoBehaviour
                 cameraSelector.UseFollowCamera();
                 break;
 
-            case States.Rope:
+            case States.Path:
                 mover.enabled = false;
-                roper.enabled = true;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -300,23 +302,9 @@ public class Player : MonoBehaviour
 
                 cameraSelector.UseFollowCamera();
                 break;
-            case States.Pipe:
-                mover.enabled = false;
-                roper.enabled = false;
-                piper.enabled = true;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = false;
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
-
-                cameraSelector.UseFollowCamera();
-                break;
             case States.Stunned:
                 mover.enabled = true;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -328,8 +316,6 @@ public class Player : MonoBehaviour
                 break;
             case States.Aligning:
                 mover.enabled = false;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = true;
                 gripper.enabled = false;
                 venter.enabled = false;
@@ -342,8 +328,6 @@ public class Player : MonoBehaviour
 
             case States.Gripped:
                 mover.enabled = false;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
                 venter.enabled = false;
@@ -359,8 +343,6 @@ public class Player : MonoBehaviour
                 break;
             case States.GrippedMoving:
                 mover.enabled = false;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = true;
                 venter.enabled = false;
@@ -376,8 +358,6 @@ public class Player : MonoBehaviour
 
             case States.Venting:
                 mover.enabled = false;
-                roper.enabled = false;
-                piper.enabled = false;
                 aligner.enabled = false;
                 gripper.enabled = false;
                 venter.enabled = true;

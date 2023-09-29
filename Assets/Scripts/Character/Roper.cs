@@ -16,8 +16,6 @@ public class Roper : MonoBehaviour, IPathFollower
     Rope currentRope;
     float t;
 
-    Vector3 direction;
-
     public bool Check()
     {
         var closest = GetClosestPath();
@@ -31,14 +29,9 @@ public class Roper : MonoBehaviour, IPathFollower
         }
     }
 
-    public void Move(Vector3 direction)
+    public void Move(Vector2 input, Vector3 direction)
     {
-        this.direction = direction;
-    }
-
-    private void FixedUpdate()
-    {
-        if (currentRope == null)
+        if (!Attatched)
             return;
 
         if (direction.magnitude > 0.1f)
@@ -80,8 +73,8 @@ public class Roper : MonoBehaviour, IPathFollower
         return closest;
     }
 
-    public void RawMove(Vector2 input)
+    public Vector3 GetClosestPoint()
     {
-        throw new System.NotImplementedException();
+        return currentRope.GetClosestPoint(transform.position);
     }
 }

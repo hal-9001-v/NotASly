@@ -11,4 +11,9 @@ public class Rope : MonoBehaviour, IPathInteractable
     {
         return Path.GetClosestPoint(point);
     }
+
+    public float GetClosestT(Vector3 point)
+    {
+        return Path.GetClosestT(point);
+    }
 }

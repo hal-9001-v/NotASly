@@ -9,12 +9,13 @@ public interface IPathFollower
     public void Attach();
     public void Dettach();
     public bool Check();
-    public void Move(Vector3 direction);
-    public void RawMove(Vector2 input);
+    public void Move(Vector2 input, Vector3 direction);
 
     /// <summary>
     /// Returns ow far along the path the follower is. If it is out of range of the follower, it returns null
     /// </summary>
     /// <returns></returns>
     public IPathInteractable GetClosestPath();
+
+    public Vector3 GetClosestPoint();
 }

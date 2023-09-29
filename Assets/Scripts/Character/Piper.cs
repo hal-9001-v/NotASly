@@ -16,8 +16,6 @@ public class Piper : MonoBehaviour, IPathFollower
     Pipe currentPipe;
     float t;
 
-    Vector2 input;
-
     public bool Check()
     {
         var closest = GetClosestPath();
@@ -31,17 +29,7 @@ public class Piper : MonoBehaviour, IPathFollower
         }
     }
 
-    public void Move(Vector3 direction)
-    {
-
-    }
- 
-    public void RawMove(Vector2 input)
-    {
-        this.input = input;
-    }
-
-    private void FixedUpdate()
+    public void Move(Vector2 input, Vector3 direction)
     {
         if (!Attatched)
             return;
@@ -56,7 +44,7 @@ public class Piper : MonoBehaviour, IPathFollower
 
         transform.position = currentPipe.Path.GetPosition(t);
     }
-
+ 
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(transform.position, checkDistance);
@@ -93,5 +81,15 @@ public class Piper : MonoBehaviour, IPathFollower
         }
 
         return closestPath;
+    }
+
+    public Vector3 GetClosestPoint(Vector3 point)
+    {
+        return currentPipe.GetClosestPoint(point);
+    }
+
+    public Vector3 GetClosestPoint()
+    {
+        return currentPipe.GetClosestPoint(transform.position);
     }
 }
