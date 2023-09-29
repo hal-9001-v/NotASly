@@ -17,6 +17,7 @@ public class Player : MonoBehaviour
     Roper roper => GetComponent<Roper>();
     Piper piper => GetComponent<Piper>();
     FallRoper fallRoper => GetComponent<FallRoper>();
+    WallSticker wallSticker => GetComponent<WallSticker>();
     Gripper gripper => GetComponent<Gripper>();
     Aligner aligner => GetComponent<Aligner>();
     Venter venter => GetComponent<Venter>();
@@ -54,6 +55,8 @@ public class Player : MonoBehaviour
 
     Vector3 direction;
     Vector2 input;
+
+    bool interacting;
 
     IPathFollower currentPathFollower;
     enum States
@@ -115,7 +118,7 @@ public class Player : MonoBehaviour
                 }
                 break;
             case States.Path:
-                currentPathFollower.Move(input, rotatedDirection);
+                currentPathFollower.Move(input, interacting, rotatedDirection);
                 if (currentPathFollower.Attatched == false)
                 {
                     ChangeState(States.Move);
@@ -218,6 +221,16 @@ public class Player : MonoBehaviour
 
     public void OnInteract()
     {
+        if (interacting == false)
+        {
+            interacting = true;
+        }
+        else
+        {
+            interacting = false;
+            return;
+        }
+
         if (roper.Check())
         {
             UsePathFollower(roper);
@@ -230,8 +243,11 @@ public class Player : MonoBehaviour
         {
             UsePathFollower(fallRoper);
         }
-
-        if (venter.Check())
+        else if (wallSticker.Check())
+        {
+            UsePathFollower(wallSticker);
+        }
+        else if (venter.Check())
         {
             ChangeState(States.Venting);
         }

@@ -29,7 +29,7 @@ public class Roper : MonoBehaviour, IPathFollower
         }
     }
 
-    public void Move(Vector2 input, Vector3 direction)
+    public void Move(Vector2 input, bool pressing, Vector3 direction)
     {
         if (!Attatched)
             return;

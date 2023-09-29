@@ -54,14 +54,14 @@ public class FallRoper : MonoBehaviour, IPathFollower
         return closest;
     }
 
-    public void Move(Vector2 input, Vector3 direction)
+    public void Move(Vector2 input, bool pressing, Vector3 direction)
     {
         if (Attatched == false) return;
 
         t = currentRope.Path.GetTWithDisplacement(t, speed * Time.deltaTime);
         transform.position = currentRope.Path.GetPosition(t);
 
-        if(t >= 1)
+        if (t >= 1)
         {
             Dettach();
         }
