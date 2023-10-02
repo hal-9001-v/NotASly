@@ -10,6 +10,8 @@ public class Health : MonoBehaviour
 
     public Action OnDead;
     public Action<int> OnHurt;
+    public Action<int> OnHeal;
+    public Action<int, int> OnChange;
 
     private void Awake()
     {
@@ -30,11 +32,28 @@ public class Health : MonoBehaviour
         {
             OnHurt?.Invoke(damage);
         }
+
+        OnChange?.Invoke(currentHealth, maxHealth);
     }
 
     public void Heal(int points)
     {
         currentHealth += Mathf.Abs(points);
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
+
+        OnHeal?.Invoke(points);
+        OnChange?.Invoke(currentHealth, maxHealth);
+    }
+
+    [ContextMenu("Heal")]
+    void DebugHeal()
+    {
+        Heal(1);
+    }
+
+    [ContextMenu("Damage")]
+    void DebugDamage()
+    {
+        TakeDamage(1);
     }
 }

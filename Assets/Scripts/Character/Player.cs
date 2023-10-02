@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Health))]
 [RequireComponent(typeof(Mover))]
 [RequireComponent(typeof(EnvironmentInfo))]
 [RequireComponent(typeof(SafeGroundChecker))]
@@ -13,20 +14,21 @@ public class Player : MonoBehaviour
 {
     [SerializeField] Transform cameraFollow;
 
-    Mover mover => GetComponent<Mover>();
-    Meleer meleer => GetComponent<Meleer>();
-    Roper roper => GetComponent<Roper>();
-    Piper piper => GetComponent<Piper>();
-    FallRoper fallRoper => GetComponent<FallRoper>();
-    WallSticker wallSticker => GetComponent<WallSticker>();
-    Gripper gripper => GetComponent<Gripper>();
-    Aligner aligner => GetComponent<Aligner>();
-    Venter venter => GetComponent<Venter>();
-    CharacterController characterController => GetComponent<CharacterController>();
+    Health Health => GetComponent<Health>();
+    Mover Mover => GetComponent<Mover>();
+    Meleer Meleer => GetComponent<Meleer>();
+    Roper Roper => GetComponent<Roper>();
+    Piper Piper => GetComponent<Piper>();
+    FallRoper FallRoper => GetComponent<FallRoper>();
+    WallSticker WallSticker => GetComponent<WallSticker>();
+    Gripper Gripper => GetComponent<Gripper>();
+    Aligner Aligner => GetComponent<Aligner>();
+    Venter Venter => GetComponent<Venter>();
 
-    SafeGroundChecker safeGroundChecker => GetComponent<SafeGroundChecker>();
-
-    CameraSelector cameraSelector => FindObjectOfType<CameraSelector>();
+    CharacterController CharacterController => GetComponent<CharacterController>();
+    SafeGroundChecker SafeGroundChecker => GetComponent<SafeGroundChecker>();
+    CameraSelector CameraSelector => FindObjectOfType<CameraSelector>();
+    PlayerHud PlayerHud => FindObjectOfType<PlayerHud>();
 
     [Header("Movement")]
     [SerializeField] float cameraSpeed = 5f;
@@ -74,8 +76,8 @@ public class Player : MonoBehaviour
 
     private void Awake()
     {
-        defaultControllerHeight = characterController.height;
-        defaultControllerRadius = characterController.radius;
+        defaultControllerHeight = CharacterController.height;
+        defaultControllerRadius = CharacterController.radius;
         ChangeState(States.Move);
     }
 
@@ -85,8 +87,17 @@ public class Player : MonoBehaviour
         environmentInfo.OnFallAction += () =>
         {
             Stun(1f);
-            mover.TeleportTo(safeGroundChecker.SafePosition);
+            Mover.TeleportTo(SafeGroundChecker.SafePosition);
         };
+
+        if (PlayerHud)
+        {
+            Health.OnChange += (current, max) =>
+            {
+                PlayerHud.SetHealth(current, max);
+            };
+            PlayerHud.SetHealth(Health.CurrentHealth, Health.CurrentHealth);
+        }
     }
 
     private void Update()
@@ -97,11 +108,11 @@ public class Player : MonoBehaviour
         switch (currentState)
         {
             case States.Move:
-                mover.Move(rotatedDirection);
+                Mover.Move(rotatedDirection);
 
                 if (gripReady)
                 {
-                    if (mover.IsGrounded == false && gripper.Check())
+                    if (Mover.IsGrounded == false && Gripper.Check())
                     {
                         ChangeState(States.Gripped);
                     }
@@ -109,13 +120,13 @@ public class Player : MonoBehaviour
                 break;
 
             case States.Fall:
-                if (mover.IsGrounded)
+                if (Mover.IsGrounded)
                 {
                     ChangeState(States.Move);
                 }
                 else
                 {
-                    mover.Move(Vector3.zero);
+                    Mover.Move(Vector3.zero);
                 }
                 break;
             case States.Path:
@@ -137,7 +148,7 @@ public class Player : MonoBehaviour
                     ChangeState(States.Fall);
                 }
 
-                if (gripper.IsInWall)
+                if (Gripper.IsInWall)
                 {
                     if (direction.magnitude > 0.25f)
                     {
@@ -153,15 +164,15 @@ public class Player : MonoBehaviour
                 }
                 break;
             case States.GrippedMoving:
-                if (gripper.MoveAlongWall() == false)
+                if (Gripper.MoveAlongWall() == false)
                 {
                     ChangeState(States.Fall);
                 };
                 break;
             case States.Venting:
-                venter.Move(cameraFollow.rotation * direction);
+                Venter.Move(cameraFollow.rotation * direction);
 
-                if (venter.IsInEntry == false && venter.IsInside == false)
+                if (Venter.IsInEntry == false && Venter.IsInside == false)
                 {
                     ChangeState(States.Move);
                 }
@@ -191,25 +202,25 @@ public class Player : MonoBehaviour
         switch (currentState)
         {
             case States.Move:
-                if (mover.IsGrounded)
-                    mover.Jump();
+                if (Mover.IsGrounded)
+                    Mover.Jump();
                 break;
             case States.Path:
                 ChangeState(States.Move);
-                mover.Jump();
+                Mover.Jump();
                 break;
             case States.Gripped:
-                mover.Launch(Vector3.Lerp(gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
+                Mover.Launch(Vector3.Lerp(Gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
                 ChangeState(States.Move);
                 break;
             case States.GrippedMoving:
-                var moveDirection = gripper.MoveVelocity;
+                var moveDirection = Gripper.MoveVelocity;
                 moveDirection.y = 0;
                 moveDirection.Normalize();
 
-                var jumpDirection = Vector3.Lerp(gripper.GripNormal, moveDirection, 0.75f);
+                var jumpDirection = Vector3.Lerp(Gripper.GripNormal, moveDirection, 0.75f);
 
-                mover.Launch(Vector3.Lerp(jumpDirection, Vector3.up, movingWallJumpUpFactor) * wallJumpSpeed);
+                Mover.Launch(Vector3.Lerp(jumpDirection, Vector3.up, movingWallJumpUpFactor) * wallJumpSpeed);
                 ChangeState(States.Move);
 
                 break;
@@ -232,23 +243,23 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (mover.IsGrounded == false && roper.Check())
+        if (Mover.IsGrounded == false && Roper.Check())
         {
-            UsePathFollower(roper);
+            UsePathFollower(Roper);
         }
-        else if (mover.IsGrounded == false && piper.Check())
+        else if (Mover.IsGrounded == false && Piper.Check())
         {
-            UsePathFollower(piper);
+            UsePathFollower(Piper);
         }
-        else if (mover.IsGrounded == false && fallRoper.Check())
+        else if (Mover.IsGrounded == false && FallRoper.Check())
         {
-            UsePathFollower(fallRoper);
+            UsePathFollower(FallRoper);
         }
-        else if (wallSticker.Check())
+        else if (WallSticker.Check())
         {
-            UsePathFollower(wallSticker);
+            UsePathFollower(WallSticker);
         }
-        else if (venter.Check())
+        else if (Venter.Check())
         {
             ChangeState(States.Venting);
         }
@@ -256,8 +267,8 @@ public class Player : MonoBehaviour
 
     public void OnHit()
     {
-        if (meleer.hitting == false)
-            meleer.Hit();
+        if (Meleer.hitting == false)
+            Meleer.Hit();
     }
     void UsePathFollower(IPathFollower follower)
     {
@@ -269,7 +280,7 @@ public class Player : MonoBehaviour
     void Align(Vector3 position, States nextState)
     {
         ChangeState(States.Aligning);
-        aligner.Align(position, () =>
+        Aligner.Align(position, () =>
         {
             ChangeState(nextState);
         });
@@ -289,105 +300,105 @@ public class Player : MonoBehaviour
         switch (newState)
         {
             case States.Move:
-                mover.enabled = true;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = false;
+                Mover.enabled = true;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
 
                 gripCooldown.ResetTimer();
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
             case States.Fall:
-                mover.enabled = true;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = false;
+                Mover.enabled = true;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
 
             case States.Path:
-                mover.enabled = false;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = false;
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
 
             case States.Stunned:
-                mover.enabled = true;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = false;
+                Mover.enabled = true;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
             case States.Aligning:
-                mover.enabled = false;
-                aligner.enabled = true;
-                gripper.enabled = false;
-                venter.enabled = false;
+                Mover.enabled = false;
+                Aligner.enabled = true;
+                Gripper.enabled = false;
+                Venter.enabled = false;
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
 
             case States.Gripped:
-                mover.enabled = false;
-                aligner.enabled = false;
-                gripper.enabled = true;
-                venter.enabled = false;
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = true;
+                Venter.enabled = false;
 
                 gripStayTimer.ResetTimer();
                 gripStartMoveTimer.ResetTimer();
                 gripCooldown.ResetTimer();
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
             case States.GrippedMoving:
-                mover.enabled = false;
-                aligner.enabled = false;
-                gripper.enabled = true;
-                venter.enabled = false;
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = true;
+                Venter.enabled = false;
 
                 gripCooldown.ResetTimer();
-                gripper.SetMoveDirection(cameraFollow.rotation * direction);
+                Gripper.SetMoveDirection(cameraFollow.rotation * direction);
 
-                characterController.height = defaultControllerHeight;
-                characterController.radius = defaultControllerRadius;
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
 
-                cameraSelector.UseFollowCamera();
+                CameraSelector.UseFollowCamera();
                 break;
 
             case States.Venting:
-                mover.enabled = false;
-                aligner.enabled = false;
-                gripper.enabled = false;
-                venter.enabled = true;
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = true;
 
-                characterController.height = ventControllerHeight;
-                characterController.radius = ventControllerRadius;
+                CharacterController.height = ventControllerHeight;
+                CharacterController.radius = ventControllerRadius;
 
-                cameraSelector.UseVentCamera();
+                CameraSelector.UseVentCamera();
                 break;
         }
         currentState = newState;
