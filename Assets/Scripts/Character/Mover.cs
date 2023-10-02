@@ -3,14 +3,21 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class Mover : MonoBehaviour
 {
+    [Header("References")]
+    [SerializeField] Transform rotatingPivot;
     CharacterController controller => GetComponent<CharacterController>();
 
     [Header("Movement")]
     [SerializeField] float speed = 6f;
+    [SerializeField] float acceleration = 10f;
     [SerializeField] float jumpHeight = 5;
     [SerializeField] float gravity = -20;
+
+    [SerializeField][Range(0, 720)] float rotatingSpeed;
+
     [SerializeField] LayerMask groundMask;
 
+    float currentSpeed;
     float ySpeed;
 
     Vector3 direction;
@@ -53,22 +60,51 @@ public class Mover : MonoBehaviour
             launchVelocity = Vector3.zero;
         }
 
-        Vector3 velocity;
+        Steer(direction);
+
+        var velocity = ySpeed * Vector3.up;
         if (launchVelocity.magnitude > 0.1f)
         {
-            velocity = ySpeed * Vector3.up + launchVelocity;
+            velocity += launchVelocity;
 
         }
         else
         {
-            velocity = direction * speed + ySpeed * Vector3.up;
+            if (direction.magnitude > 0.1f)
+            {
+                currentSpeed += acceleration * Time.fixedDeltaTime;
+                if(currentSpeed > speed)
+                {
+                    currentSpeed = speed;
+                }
+
+                velocity += rotatingPivot.forward * currentSpeed;
+            }else
+            {
+                currentSpeed = 0;
+            }
         }
+
         controller.Move(velocity * Time.deltaTime);
     }
 
     public void Move(Vector3 direction)
     {
         this.direction = direction;
+    }
+
+    public void Steer(Vector3 direction)
+    {
+        if (direction.magnitude < 0.1f)
+        {
+            return;
+        }
+
+        var targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+
+        var angle = Quaternion.Angle(rotatingPivot.rotation, targetRotation);
+
+        rotatingPivot.rotation = Quaternion.Lerp(rotatingPivot.rotation, targetRotation, Time.fixedDeltaTime * rotatingSpeed / angle);
     }
 
     public void TeleportTo(Vector3 position)

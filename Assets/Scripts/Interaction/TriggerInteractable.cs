@@ -16,9 +16,14 @@ public class TriggerInteractable : MonoBehaviour
 
     [HideInInspector] public List<Interactor> Interactors;
 
+    [SerializeField] InteractorTag targetTag;
+
+    public Collider Collider => GetComponent<Collider>();
+
     private void Awake()
     {
         Interactors = new List<Interactor>();
+        Collider.isTrigger = true;
     }
 
     private void OnTriggerEnter(Collider other)
@@ -26,6 +31,8 @@ public class TriggerInteractable : MonoBehaviour
         Interactor interactor = other.GetComponent<Interactor>();
         if (interactor != null)
         {
+            if (IsInteractorValid(interactor) == false) return;
+
             Interactors.Add(interactor);
             onEnterEvent.Invoke(interactor);
             OnEnterAction?.Invoke(interactor);
@@ -41,6 +48,8 @@ public class TriggerInteractable : MonoBehaviour
         Interactor interactor = other.GetComponent<Interactor>();
         if (interactor != null)
         {
+            if (IsInteractorValid(interactor) == false) return;
+
             Interactors.Remove(interactor);
             onExitEvent.Invoke(interactor);
             OnExitAction?.Invoke(interactor);
@@ -49,6 +58,17 @@ public class TriggerInteractable : MonoBehaviour
             {
                 Debug.Log("TriggerInteractable: " + name + " exit triggered by " + interactor.name);
             }
+
         }
     }
+
+    bool IsInteractorValid(Interactor interactor)
+    {
+        if (interactor.InteractorTag == InteractorTag.Any) return true;
+        if (targetTag == InteractorTag.Any) return true;
+        if (interactor.InteractorTag == targetTag) return true;
+
+        return false;
+    }
+
 }

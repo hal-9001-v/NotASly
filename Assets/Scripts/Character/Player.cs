@@ -14,6 +14,7 @@ public class Player : MonoBehaviour
     [SerializeField] Transform cameraFollow;
 
     Mover mover => GetComponent<Mover>();
+    Meleer meleer => GetComponent<Meleer>();
     Roper roper => GetComponent<Roper>();
     Piper piper => GetComponent<Piper>();
     FallRoper fallRoper => GetComponent<FallRoper>();
@@ -231,15 +232,15 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (roper.Check())
+        if (mover.IsGrounded == false && roper.Check())
         {
             UsePathFollower(roper);
         }
-        else if (piper.Check())
+        else if (mover.IsGrounded == false && piper.Check())
         {
             UsePathFollower(piper);
         }
-        else if (fallRoper.Check())
+        else if (mover.IsGrounded == false && fallRoper.Check())
         {
             UsePathFollower(fallRoper);
         }
@@ -253,6 +254,11 @@ public class Player : MonoBehaviour
         }
     }
 
+    public void OnHit()
+    {
+        if (meleer.hitting == false)
+            meleer.Hit();
+    }
     void UsePathFollower(IPathFollower follower)
     {
         currentPathFollower = follower;
