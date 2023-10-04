@@ -11,6 +11,7 @@ public class Mover : MonoBehaviour
     [SerializeField] float speed = 6f;
     [SerializeField] float acceleration = 10f;
     [SerializeField] float jumpHeight = 5;
+    [SerializeField] float doubleJumpHeight = 5;
     [SerializeField] float gravity = -20;
 
     [SerializeField][Range(0, 720)] float rotatingSpeed;
@@ -73,13 +74,14 @@ public class Mover : MonoBehaviour
             if (direction.magnitude > 0.1f)
             {
                 currentSpeed += acceleration * Time.fixedDeltaTime;
-                if(currentSpeed > speed)
+                if (currentSpeed > speed)
                 {
                     currentSpeed = speed;
                 }
 
                 velocity += rotatingPivot.forward * currentSpeed;
-            }else
+            }
+            else
             {
                 currentSpeed = 0;
             }
@@ -119,6 +121,11 @@ public class Mover : MonoBehaviour
     public void Jump()
     {
         Jump(jumpHeight);
+    }
+
+    public void DoubleJump()
+    {
+        Jump(doubleJumpHeight);
     }
 
     public void Jump(float height)

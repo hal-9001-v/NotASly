@@ -67,6 +67,7 @@ public class Player : MonoBehaviour
     Vector2 input;
 
     bool interacting;
+    bool doubleJumpReady;
 
     IPathFollower currentPathFollower;
     enum States
@@ -112,7 +113,6 @@ public class Player : MonoBehaviour
     private void Update()
     {
         var rotatedDirection = cameraFollow.rotation * direction;
-
         var gripReady = gripCooldown.UpdateTimer();
         switch (currentState)
         {
@@ -214,14 +214,13 @@ public class Player : MonoBehaviour
         switch (currentState)
         {
             case States.Move:
-                if (Mover.IsGrounded)
-                    Jump();
+                Jump(false);
                 break;
             case States.Path:
-                Jump();
+                Jump(true);
                 break;
             case States.Point:
-                Jump();
+                Jump(true);
                 break;
             case States.Gripped:
                 Mover.Launch(Vector3.Lerp(Gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
@@ -320,10 +319,20 @@ public class Player : MonoBehaviour
         stunCoroutine = StartCoroutine(StunCoroutine(time));
     }
 
-    void Jump()
+    void Jump(bool force)
     {
         ChangeState(States.Move);
-        Mover.Jump();
+
+        if (Mover.IsGrounded || force)
+        {
+            doubleJumpReady = true;
+            Mover.Jump();
+        }
+        else if (doubleJumpReady)
+        {
+            doubleJumpReady = false;
+            Mover.DoubleJump();
+        }
     }
 
     void ChangeState(States newState)

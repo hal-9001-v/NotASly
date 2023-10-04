@@ -13,12 +13,9 @@ public class Gripper : MonoBehaviour
     [SerializeField] float gripDistance = 1f;
     [SerializeField][Range(0, 20)] float wallSpeed = 5f;
     [SerializeField] AnimationCurve gripGravityProgression;
-    [SerializeField][Range(0, 10)] float minVelocity = 1f;
     [SerializeField] Timer timeInWall;
     [SerializeField] Timer gripCooldown;
     [SerializeField][Range(0, 1)] float distanceToWall = 0.15f;
-    [SerializeField][Range(0, 1)] float pressedTime = 0.5f;
-    [SerializeField][Range(0, 1)] float deadzone = 0.2f;
     [SerializeField] float gravity = 20;
 
     Vector3 gripPosition;

@@ -24307,7 +24307,8 @@ MonoBehaviour:
   rotatingPivot: {fileID: 492221861}
   speed: 7
   acceleration: 15
-  jumpHeight: 3
+  jumpHeight: 2
+  doubleJumpHeight: 1
   gravity: -20
   rotatingSpeed: 720
   groundMask:
