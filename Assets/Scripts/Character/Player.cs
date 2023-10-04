@@ -5,6 +5,12 @@ using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Health))]
 [RequireComponent(typeof(Mover))]
+[RequireComponent(typeof(Meleer))]
+[RequireComponent(typeof(Piper))]
+[RequireComponent(typeof(SharpPointer))]
+[RequireComponent(typeof(FallRoper))]
+[RequireComponent(typeof(WallSticker))]
+[RequireComponent(typeof(Gripper))]
 [RequireComponent(typeof(EnvironmentInfo))]
 [RequireComponent(typeof(SafeGroundChecker))]
 [RequireComponent(typeof(Roper))]
@@ -19,6 +25,7 @@ public class Player : MonoBehaviour
     Meleer Meleer => GetComponent<Meleer>();
     Roper Roper => GetComponent<Roper>();
     Piper Piper => GetComponent<Piper>();
+    SharpPointer SharpPointer => GetComponent<SharpPointer>();
     FallRoper FallRoper => GetComponent<FallRoper>();
     WallSticker WallSticker => GetComponent<WallSticker>();
     Gripper Gripper => GetComponent<Gripper>();
@@ -64,9 +71,11 @@ public class Player : MonoBehaviour
     IPathFollower currentPathFollower;
     enum States
     {
+        None,
         Move,
         Fall,
         Path,
+        Point,
         Aligning,
         Stunned,
         Gripped,
@@ -137,6 +146,9 @@ public class Player : MonoBehaviour
                 }
 
                 break;
+            case States.Point:
+                Mover.Steer(rotatedDirection);
+                break;
             case States.Aligning:
 
                 break;
@@ -203,11 +215,13 @@ public class Player : MonoBehaviour
         {
             case States.Move:
                 if (Mover.IsGrounded)
-                    Mover.Jump();
+                    Jump();
                 break;
             case States.Path:
-                ChangeState(States.Move);
-                Mover.Jump();
+                Jump();
+                break;
+            case States.Point:
+                Jump();
                 break;
             case States.Gripped:
                 Mover.Launch(Vector3.Lerp(Gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
@@ -243,26 +257,37 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (Mover.IsGrounded == false && Roper.Check())
+        if (Mover.IsGrounded)
         {
-            UsePathFollower(Roper);
+            if (WallSticker.Check())
+            {
+                UsePathFollower(WallSticker);
+            }
+            else if (Venter.Check())
+            {
+                ChangeState(States.Venting);
+            }
         }
-        else if (Mover.IsGrounded == false && Piper.Check())
+        else
         {
-            UsePathFollower(Piper);
+            if (Roper.Check())
+            {
+                UsePathFollower(Roper);
+            }
+            else if (Piper.Check())
+            {
+                UsePathFollower(Piper);
+            }
+            else if (FallRoper.Check())
+            {
+                UsePathFollower(FallRoper);
+            }
+            else if (SharpPointer.Check())
+            {
+                Align(SharpPointer.GetClosest().Point, States.Point);
+            }
         }
-        else if (Mover.IsGrounded == false && FallRoper.Check())
-        {
-            UsePathFollower(FallRoper);
-        }
-        else if (WallSticker.Check())
-        {
-            UsePathFollower(WallSticker);
-        }
-        else if (Venter.Check())
-        {
-            ChangeState(States.Venting);
-        }
+
     }
 
     public void OnHit()
@@ -295,8 +320,17 @@ public class Player : MonoBehaviour
         stunCoroutine = StartCoroutine(StunCoroutine(time));
     }
 
+    void Jump()
+    {
+        ChangeState(States.Move);
+        Mover.Jump();
+    }
+
     void ChangeState(States newState)
     {
+        if (currentState == newState)
+            return;
+
         switch (newState)
         {
             case States.Move:
@@ -312,6 +346,7 @@ public class Player : MonoBehaviour
 
                 CameraSelector.UseFollowCamera();
                 break;
+
             case States.Fall:
                 Mover.enabled = true;
                 Aligner.enabled = false;
@@ -336,6 +371,17 @@ public class Player : MonoBehaviour
                 CameraSelector.UseFollowCamera();
                 break;
 
+            case States.Point:
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
+
+                CharacterController.height = defaultControllerHeight;
+                CharacterController.radius = defaultControllerRadius;
+
+                CameraSelector.UseFollowCamera();
+                break;
             case States.Stunned:
                 Mover.enabled = true;
                 Aligner.enabled = false;
@@ -347,6 +393,7 @@ public class Player : MonoBehaviour
 
                 CameraSelector.UseFollowCamera();
                 break;
+
             case States.Aligning:
                 Mover.enabled = false;
                 Aligner.enabled = true;
