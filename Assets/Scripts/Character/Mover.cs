@@ -6,7 +6,7 @@ public class Mover : MonoBehaviour
     [Header("References")]
     [SerializeField] Transform rotatingPivot;
     CharacterController controller => GetComponent<CharacterController>();
-
+    GroundCheck GroundCheck => GetComponentInChildren<GroundCheck>();
     [Header("Movement")]
     [SerializeField] float speed = 6f;
     [SerializeField] float acceleration = 10f;
@@ -24,19 +24,7 @@ public class Mover : MonoBehaviour
     Vector3 direction;
     Vector3 launchVelocity;
 
-    public bool IsGrounded
-    {
-        get
-        {
-            if (ySpeed <= 0 && Physics.Raycast(transform.position, Vector3.down, out var hit, controller.height * 0.55f, groundMask))
-            {
-                return true;
-            }
-
-            return false;
-        }
-    }
-
+   
     private void OnDisable()
     {
         direction = Vector3.zero;
@@ -55,7 +43,8 @@ public class Mover : MonoBehaviour
     private void FixedUpdate()
     {
         ySpeed += gravity * Time.deltaTime;
-        if (IsGrounded && ySpeed < 0)
+        GroundCheck.SetYSpeed(ySpeed);
+        if (GroundCheck.IsGrounded)
         {
             ySpeed = 0f;
             launchVelocity = Vector3.zero;
@@ -95,10 +84,17 @@ public class Mover : MonoBehaviour
         this.direction = direction;
     }
 
-    public void Steer(Vector3 direction)
+    public void Steer(Vector3 direction, bool insta = false)
     {
+
         if (direction.magnitude < 0.1f)
         {
+            return;
+        }
+
+        if(insta)
+        {
+            rotatingPivot.rotation = Quaternion.LookRotation(direction, Vector3.up);
             return;
         }
 

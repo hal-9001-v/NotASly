@@ -9,6 +9,8 @@ public class Timer
 
     public float NormalizedTime => Mathf.Clamp01(elapsedTime / time);
 
+    public bool IsFinished => elapsedTime >= time;
+
     public Timer(float time)
     {
         this.time = time;

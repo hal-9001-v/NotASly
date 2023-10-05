@@ -31,6 +31,7 @@ public class Player : MonoBehaviour
     WallSticker WallSticker => GetComponent<WallSticker>();
     Gripper Gripper => GetComponent<Gripper>();
     Aligner Aligner => GetComponent<Aligner>();
+    Launchable Launchable => GetComponent<Launchable>();
     Venter Venter => GetComponent<Venter>();
 
     CharacterController CharacterController => GetComponent<CharacterController>();
@@ -38,14 +39,11 @@ public class Player : MonoBehaviour
     CameraSelector CameraSelector => FindObjectOfType<CameraSelector>();
     PlayerHud PlayerHud => FindObjectOfType<PlayerHud>();
 
+    GroundCheck GroundCheck => GetComponent<GroundCheck>();
+
     [Header("Movement")]
     [SerializeField] float cameraSpeed = 5f;
     [SerializeField] float wallJumpSpeed = 20;
-
-    [Header("Grip")]
-    [SerializeField] Timer gripStayTimer;
-    [SerializeField] Timer gripStartMoveTimer;
-    [SerializeField] Timer gripCooldown;
 
     [SerializeField][Range(0, 1)] float wallJumpUpFactor = 0.8f;
     [SerializeField][Range(0, 1)] float movingWallJumpUpFactor = 0.8f;
@@ -78,10 +76,10 @@ public class Player : MonoBehaviour
         Fall,
         Path,
         Point,
+        Launched,
         Aligning,
         Stunned,
         Gripped,
-        GrippedMoving,
         Venting,
     }
 
@@ -109,19 +107,32 @@ public class Player : MonoBehaviour
             };
             PlayerHud.SetHealth(Health.CurrentHealth, Health.CurrentHealth);
         }
+
+        Launchable.OnLaunch += OnLaunch;
+        Launchable.OnStopLaunch += OnStopLaunch;
+    }
+
+    void OnLaunch()
+    {
+        ChangeState(States.Launched);
+    }
+
+    void OnStopLaunch()
+    {
+        ChangeState(States.Move);
     }
 
     private void Update()
     {
         var rotatedDirection = cameraFollow.rotation * direction;
-        var gripReady = gripCooldown.UpdateTimer();
+
         switch (currentState)
         {
             case States.Move:
                 if (rotatedDirection.magnitude > 0.1f)
                 {
                     Mover.Move(rotatedDirection);
-                    if (Mover.IsGrounded)
+                    if (GroundCheck.IsGrounded)
                         PlayerAnimator.Walk();
                     else
                         PlayerAnimator.Jump();
@@ -129,23 +140,22 @@ public class Player : MonoBehaviour
                 else
                 {
                     Mover.Move(Vector3.zero);
-                    if (Mover.IsGrounded)
+                    if (GroundCheck.IsGrounded)
                         PlayerAnimator.Idle();
                     else
                         PlayerAnimator.Jump();
                 }
 
-                if (gripReady)
+                if (Gripper.Check())
                 {
-                    if (Mover.IsGrounded == false && Gripper.Check())
-                    {
-                        ChangeState(States.Gripped);
-                    }
+                    Gripper.Attatch();
+                    ChangeState(States.Gripped);
                 }
+
                 break;
 
             case States.Fall:
-                if (Mover.IsGrounded)
+                if (GroundCheck.IsGrounded)
                 {
                     ChangeState(States.Move);
                 }
@@ -154,6 +164,7 @@ public class Player : MonoBehaviour
                     Mover.Move(Vector3.zero);
                 }
                 break;
+          
             case States.Path:
                 currentPathFollower.Move(input, interacting, rotatedDirection);
                 if (currentPathFollower.Attatched == false)
@@ -162,40 +173,30 @@ public class Player : MonoBehaviour
                 }
 
                 break;
+ 
             case States.Point:
                 Mover.Steer(rotatedDirection);
                 break;
+        
             case States.Aligning:
 
                 break;
+            
             case States.Stunned:
                 break;
+            
             case States.Gripped:
-                if (gripStayTimer.UpdateTimer())
+                if (Gripper.IsGripped)
                 {
-                    ChangeState(States.Fall);
+                    Gripper.Move(rotatedDirection);
+                }
+                else
+                {
+                    
+                    Gripper.Release();
+                    ChangeState(States.Move);
                 }
 
-                if (Gripper.IsInWall)
-                {
-                    if (direction.magnitude > 0.25f)
-                    {
-                        if (gripStartMoveTimer.UpdateTimer())
-                        {
-                            ChangeState(States.GrippedMoving);
-                        }
-                    }
-                    else
-                    {
-                        gripStartMoveTimer.ResetTimer();
-                    }
-                }
-                break;
-            case States.GrippedMoving:
-                if (Gripper.MoveAlongWall() == false)
-                {
-                    ChangeState(States.Fall);
-                };
                 break;
             case States.Venting:
                 Venter.Move(cameraFollow.rotation * direction);
@@ -239,19 +240,8 @@ public class Player : MonoBehaviour
                 Jump(true);
                 break;
             case States.Gripped:
-                Mover.Launch(Vector3.Lerp(Gripper.GripNormal, Vector3.up, wallJumpUpFactor) * wallJumpSpeed);
+                Gripper.Jump();
                 ChangeState(States.Move);
-                break;
-            case States.GrippedMoving:
-                var moveDirection = Gripper.MoveVelocity;
-                moveDirection.y = 0;
-                moveDirection.Normalize();
-
-                var jumpDirection = Vector3.Lerp(Gripper.GripNormal, moveDirection, 0.75f);
-
-                Mover.Launch(Vector3.Lerp(jumpDirection, Vector3.up, movingWallJumpUpFactor) * wallJumpSpeed);
-                ChangeState(States.Move);
-
                 break;
 
             case States.Venting:
@@ -272,7 +262,7 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (Mover.IsGrounded)
+        if (GroundCheck.IsGrounded)
         {
             if (WallSticker.Check())
             {
@@ -342,7 +332,7 @@ public class Player : MonoBehaviour
     {
         ChangeState(States.Move);
 
-        if (Mover.IsGrounded || force)
+        if (GroundCheck.IsGrounded || force)
         {
             doubleJumpReady = true;
             Mover.Jump();
@@ -368,8 +358,6 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                gripCooldown.ResetTimer();
 
                 CharacterController.height = defaultControllerHeight;
                 CharacterController.radius = defaultControllerRadius;
@@ -441,31 +429,14 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = true;
                 Venter.enabled = false;
-
-                gripStayTimer.ResetTimer();
-                gripStartMoveTimer.ResetTimer();
-                gripCooldown.ResetTimer();
+                Launchable.enabled = false;
 
                 CharacterController.height = defaultControllerHeight;
                 CharacterController.radius = defaultControllerRadius;
 
                 CameraSelector.UseFollowCamera();
                 break;
-            case States.GrippedMoving:
-                Mover.enabled = false;
-                Aligner.enabled = false;
-                Gripper.enabled = true;
-                Venter.enabled = false;
-
-                gripCooldown.ResetTimer();
-                Gripper.SetMoveDirection(cameraFollow.rotation * direction);
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
-
-                CameraSelector.UseFollowCamera();
-                break;
-
+    
             case States.Venting:
                 Mover.enabled = false;
                 Aligner.enabled = false;
