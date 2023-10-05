@@ -20,6 +20,7 @@ public class Player : MonoBehaviour
 {
     [SerializeField] Transform cameraFollow;
 
+    PlayerAnimator PlayerAnimator => FindObjectOfType<PlayerAnimator>();
     Health Health => GetComponent<Health>();
     Mover Mover => GetComponent<Mover>();
     Meleer Meleer => GetComponent<Meleer>();
@@ -117,7 +118,22 @@ public class Player : MonoBehaviour
         switch (currentState)
         {
             case States.Move:
-                Mover.Move(rotatedDirection);
+                if (rotatedDirection.magnitude > 0.1f)
+                {
+                    Mover.Move(rotatedDirection);
+                    if (Mover.IsGrounded)
+                        PlayerAnimator.Walk();
+                    else
+                        PlayerAnimator.Jump();
+                }
+                else
+                {
+                    Mover.Move(Vector3.zero);
+                    if (Mover.IsGrounded)
+                        PlayerAnimator.Idle();
+                    else
+                        PlayerAnimator.Jump();
+                }
 
                 if (gripReady)
                 {
@@ -292,7 +308,10 @@ public class Player : MonoBehaviour
     public void OnHit()
     {
         if (Meleer.hitting == false)
+        {
             Meleer.Hit();
+            PlayerAnimator.Hit();
+        }
     }
     void UsePathFollower(IPathFollower follower)
     {
@@ -327,11 +346,13 @@ public class Player : MonoBehaviour
         {
             doubleJumpReady = true;
             Mover.Jump();
+            PlayerAnimator.Jump();
         }
         else if (doubleJumpReady)
         {
             doubleJumpReady = false;
             Mover.DoubleJump();
+            PlayerAnimator.Jump();
         }
     }
 
