@@ -34,6 +34,7 @@ public class Player : MonoBehaviour
     Launchable Launchable => GetComponent<Launchable>();
     Venter Venter => GetComponent<Venter>();
 
+    Rigidbody Rigidbody => GetComponent<Rigidbody>();
     CharacterController CharacterController => GetComponent<CharacterController>();
     SafeGroundChecker SafeGroundChecker => GetComponent<SafeGroundChecker>();
     CameraSelector CameraSelector => FindObjectOfType<CameraSelector>();
@@ -41,20 +42,7 @@ public class Player : MonoBehaviour
 
     GroundCheck GroundCheck => GetComponent<GroundCheck>();
 
-    [Header("Movement")]
     [SerializeField] float cameraSpeed = 5f;
-    [SerializeField] float wallJumpSpeed = 20;
-
-    [SerializeField][Range(0, 1)] float wallJumpUpFactor = 0.8f;
-    [SerializeField][Range(0, 1)] float movingWallJumpUpFactor = 0.8f;
-
-    [Header("Vent")]
-    float defaultControllerHeight;
-    float defaultControllerRadius = 0.25f;
-
-    [SerializeField][Range(0, 2)] float ventControllerHeight = 0.25f;
-    [SerializeField][Range(0, 2)] float ventControllerRadius = 0.25f;
-
 
     Vector2 cameraDirection;
 
@@ -85,8 +73,6 @@ public class Player : MonoBehaviour
 
     private void Awake()
     {
-        defaultControllerHeight = CharacterController.height;
-        defaultControllerRadius = CharacterController.radius;
         ChangeState(States.Move);
     }
 
@@ -110,15 +96,34 @@ public class Player : MonoBehaviour
 
         Launchable.OnLaunch += OnLaunch;
         Launchable.OnStopLaunch += OnStopLaunch;
+
+        SafeGroundChecker.OnSetSafe += (pos) =>
+        {
+            var controllerEnabled = CharacterController.enabled;
+            var kinematic = Rigidbody.isKinematic;
+
+            CharacterController.enabled = false;
+            Rigidbody.isKinematic = true;
+            
+            transform.position = pos;
+            
+            CharacterController.enabled = controllerEnabled;
+            Rigidbody.isKinematic = kinematic;
+            ChangeState(States.Fall);
+        };
     }
 
     void OnLaunch()
     {
+        Rigidbody.isKinematic = false;
+        CharacterController.enabled = false;
         ChangeState(States.Launched);
     }
 
     void OnStopLaunch()
     {
+        Rigidbody.isKinematic = true;
+        CharacterController.enabled = true;
         ChangeState(States.Move);
     }
 
@@ -151,7 +156,6 @@ public class Player : MonoBehaviour
                     Gripper.Attatch();
                     ChangeState(States.Gripped);
                 }
-
                 break;
 
             case States.Fall:
@@ -164,7 +168,7 @@ public class Player : MonoBehaviour
                     Mover.Move(Vector3.zero);
                 }
                 break;
-          
+
             case States.Path:
                 currentPathFollower.Move(input, interacting, rotatedDirection);
                 if (currentPathFollower.Attatched == false)
@@ -173,18 +177,18 @@ public class Player : MonoBehaviour
                 }
 
                 break;
- 
+
             case States.Point:
                 Mover.Steer(rotatedDirection);
                 break;
-        
+
             case States.Aligning:
 
                 break;
-            
+
             case States.Stunned:
                 break;
-            
+
             case States.Gripped:
                 if (Gripper.IsGripped)
                 {
@@ -192,7 +196,6 @@ public class Player : MonoBehaviour
                 }
                 else
                 {
-                    
                     Gripper.Release();
                     ChangeState(States.Move);
                 }
@@ -201,10 +204,13 @@ public class Player : MonoBehaviour
             case States.Venting:
                 Venter.Move(cameraFollow.rotation * direction);
 
-                if (Venter.IsInEntry == false && Venter.IsInside == false)
+                if (Venter.IsVenting == false)
                 {
+                    Venter.Release();
                     ChangeState(States.Move);
                 }
+                break;
+            case States.Launched:
                 break;
         }
 
@@ -358,9 +364,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -370,9 +374,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -382,9 +384,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -394,9 +394,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -405,9 +403,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -417,9 +413,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = true;
                 Gripper.enabled = false;
                 Venter.enabled = false;
-
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
+                Launchable.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -431,22 +425,28 @@ public class Player : MonoBehaviour
                 Venter.enabled = false;
                 Launchable.enabled = false;
 
-                CharacterController.height = defaultControllerHeight;
-                CharacterController.radius = defaultControllerRadius;
-
                 CameraSelector.UseFollowCamera();
                 break;
-    
+
             case States.Venting:
                 Mover.enabled = false;
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = true;
 
-                CharacterController.height = ventControllerHeight;
-                CharacterController.radius = ventControllerRadius;
+                Venter.Attach();
 
                 CameraSelector.UseVentCamera();
+                break;
+
+            case States.Launched:
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
+                Launchable.enabled = true;
+
+                CameraSelector.UseFollowCamera();
                 break;
         }
         currentState = newState;
@@ -458,10 +458,4 @@ public class Player : MonoBehaviour
         ChangeState(States.Move);
     }
 
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, ventControllerHeight);
-    }
 }

@@ -5,14 +5,29 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class Venter : MonoBehaviour
 {
+    [Header("Settings")]
+    [SerializeField] float speed = 6f;
+    [SerializeField] float gravity = 20f;
+    [SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
+    [SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
+
+    public bool IsVenting => IsInEntry || IsInside;
     public bool IsInside;
     public bool IsInEntry;
 
-    Mover mover => GetComponent<Mover>();
-    
+    CharacterController CharacterController => GetComponent<CharacterController>();
+    float defaultControllerHeight;
+    float defaultControllerRadius;
+
+    private void Awake()
+    {
+        defaultControllerHeight = CharacterController.height;
+        defaultControllerRadius = CharacterController.radius;
+    }
+
     public bool Check()
     {
-        if (IsInEntry)
+        if (IsVenting)
         {
             return true;
         }
@@ -20,8 +35,27 @@ public class Venter : MonoBehaviour
         return false;
     }
 
+    public void Attach()
+    {
+        CharacterController.height = ventControllerHeight;
+        CharacterController.radius = ventControllerRadius;
+    }
+
+    public void Release()
+    {
+        CharacterController.height = defaultControllerHeight;
+        CharacterController.radius = defaultControllerRadius;
+    }
+
     public void Move(Vector3 direction)
     {
-        mover.Move(direction);
+        var velocity = direction * speed + Vector3.down * gravity;
+        CharacterController.Move(velocity * Time.deltaTime);
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, ventControllerHeight);
     }
 }

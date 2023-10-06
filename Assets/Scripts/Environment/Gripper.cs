@@ -155,6 +155,7 @@ public class Gripper : MonoBehaviour
             idleFallSpeed = 0;
             moveVelocity = Vector3.zero;
 
+            timeInWall.ResetTimer();
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +9,8 @@ public class SafeGroundChecker : MonoBehaviour
     SafeGround currentSafeGround;
     public Vector3 SafePosition => currentSafeGround.Position;
 
+    public Action<Vector3> OnSetSafe;
+
     public void SetSafeGround(SafeGround safeGround)
     {
         currentSafeGround = safeGround;
@@ -16,5 +19,6 @@ public class SafeGroundChecker : MonoBehaviour
     public void GetToSafeGround()
     {
         transform.position = currentSafeGround.Position;
+        OnSetSafe?.Invoke(currentSafeGround.Position);
     }
 }

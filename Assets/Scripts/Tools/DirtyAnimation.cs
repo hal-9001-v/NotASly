@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class DirtyAnimation : MonoBehaviour
 {
@@ -10,9 +11,12 @@ public class DirtyAnimation : MonoBehaviour
     public Vector3 movementSpeed;
 
     public bool looped;
-    [Range(1, 10)] public float loopTime;
+    [Range(0, 10)] public float loopTime;
     public float elapsedTime;
     float sign = 1;
+
+    public UnityEvent OnEndLoop;
+
     private void FixedUpdate()
     {
         
@@ -23,11 +27,17 @@ public class DirtyAnimation : MonoBehaviour
             {
                 sign *= -1;
                 elapsedTime = 0;
+                OnEndLoop?.Invoke();
             }
         }
 
         transform.eulerAngles += rotationSpeed * Time.fixedDeltaTime * sign;
         transform.position += movementSpeed * Time.fixedDeltaTime * sign;
+    }
+
+    public void ResetTimer()
+    {
+        elapsedTime = 0;
     }
 
 }
