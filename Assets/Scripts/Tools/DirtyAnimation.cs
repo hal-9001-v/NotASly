@@ -9,6 +9,8 @@ public class DirtyAnimation : MonoBehaviour
     public Vector3 rotationSpeed;
     [Header("Movement")]
     public Vector3 movementSpeed;
+    [Header("Scale")]
+    public Vector3 scaleSpeed;
 
     public bool looped;
     [Range(0, 10)] public float loopTime;
@@ -33,6 +35,7 @@ public class DirtyAnimation : MonoBehaviour
 
         transform.eulerAngles += rotationSpeed * Time.fixedDeltaTime * sign;
         transform.position += movementSpeed * Time.fixedDeltaTime * sign;
+        transform.localScale += scaleSpeed * Time.fixedDeltaTime * sign;
     }
 
     public void ResetTimer()

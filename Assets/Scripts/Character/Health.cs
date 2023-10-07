@@ -11,8 +11,8 @@ public class Health : MonoBehaviour
     [SerializeField] bool invincible;
     public int CurrentHealth { get { return currentHealth; } }
 
-    public Action OnDead;
-    public Action<int> OnHurt;
+    public Action<Vector3> OnDead;
+    public Action<int, Vector3> OnHurt;
     public Action<int> OnHeal;
     public Action<int, int> OnChange;
 
@@ -24,7 +24,7 @@ public class Health : MonoBehaviour
         Heal(maxHealth);
     }
 
-    public void TakeDamage(int damage)
+    public void TakeDamage(int damage, Vector3 origin = new Vector3())
     {
         damage = Mathf.Abs(damage);
         if (invincible == false)
@@ -35,12 +35,12 @@ public class Health : MonoBehaviour
 
         if (currentHealth == 0)
         {
-            OnDead?.Invoke();
+            OnDead?.Invoke(origin);
             OnDeadEvent?.Invoke();
         }
         else
         {
-            OnHurt?.Invoke(damage);
+            OnHurt?.Invoke(damage, origin);
             OnHurtEvent?.Invoke();
         }
 

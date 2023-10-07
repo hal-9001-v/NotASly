@@ -183,6 +183,9 @@ MonoBehaviour:
   - prefab: {fileID: 7917925539495294158, guid: 31e0a87f3549852408d3ec85a23a0b0b,
       type: 3}
     tickets: 1
+  - prefab: {fileID: 2456986225771236201, guid: 5fa3177281f2183429b3d24232110f28,
+      type: 3}
+    tickets: 5
 --- !u!114 &1356606026292727203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1687,7 +1690,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 290
+  m_VersionIndex: 293
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []

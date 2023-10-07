@@ -3,20 +3,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(TriggerInteractable))]
-public class Healer : MonoBehaviour
+public class HealCollectable : MonoBehaviour
 {
     public int healAmount = 1;
-    TriggerInteractable TriggerInteractable => GetComponent<TriggerInteractable>();
+    Collectable Collectable => GetComponent<Collectable>();
 
     // Start is called before the first frame update
     void Start()
     {
-        TriggerInteractable.OnEnterAction += Heal;
+        Collectable.OnCollectCallback += Heal;
     }
 
-    void Heal(Interactor interactor)
+    void Heal(Collector collector)
     {
-        var health = interactor.GetComponent<Health>();
+        var health = collector.GetComponent<Health>();
         if (health != null)
         {
             health.Heal(healAmount);
