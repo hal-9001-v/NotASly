@@ -33,7 +33,8 @@ public class Player : MonoBehaviour
     Aligner Aligner => GetComponent<Aligner>();
     Launchable Launchable => GetComponent<Launchable>();
     Venter Venter => GetComponent<Venter>();
-
+    PickPocketer PickPocketer => GetComponent<PickPocketer>();
+    Interactor Interactor => GetComponent<Interactor>();
     Rigidbody Rigidbody => GetComponent<Rigidbody>();
     CharacterController CharacterController => GetComponent<CharacterController>();
     SafeGroundChecker SafeGroundChecker => GetComponent<SafeGroundChecker>();
@@ -104,9 +105,9 @@ public class Player : MonoBehaviour
 
             CharacterController.enabled = false;
             Rigidbody.isKinematic = true;
-            
+
             transform.position = pos;
-            
+
             CharacterController.enabled = controllerEnabled;
             Rigidbody.isKinematic = kinematic;
             ChangeState(States.Fall);
@@ -278,6 +279,19 @@ public class Player : MonoBehaviour
             {
                 ChangeState(States.Venting);
             }
+
+            if (currentState == States.Move)
+            {
+                if (Interactor.ActiveInteraction())
+                {
+
+                }
+                else if (PickPocketer.Check())
+                {
+                    PickPocketer.Poke();
+                }
+            }
+
         }
         else
         {

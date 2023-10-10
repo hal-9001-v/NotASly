@@ -7,6 +7,8 @@ public class Inventory : MonoBehaviour
 {
     public int CurrentMoney { get; private set; }
 
+    [SerializeField] List<InventoryItem> items;
+
     /// <summary>
     /// Current money and change
     /// </summary>
@@ -17,6 +19,21 @@ public class Inventory : MonoBehaviour
         CurrentMoney += amount;
 
         OnMoneyChange?.Invoke(CurrentMoney, amount);
+    }
+
+    public void AddItem(InventoryItem item)
+    {
+        items.Add(item);
+    }
+
+    public bool HasItem(InventoryItem item)
+    {
+        return items.Contains(item);
+    }
+
+    public void RemoveItem(InventoryItem item)
+    {
+        items.Remove(item);
     }
 
 }
