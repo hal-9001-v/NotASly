@@ -80,6 +80,33 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Binocucom"",
+                    ""type"": ""Button"",
+                    ""id"": ""d81d090c-f2a8-4cc2-9853-8519161c027b"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MouseCamera"",
+                    ""type"": ""Value"",
+                    ""id"": ""6b8f4a71-2a6e-44ff-a814-f9f9fa27c933"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": ""StickDeadzone"",
+                    ""interactions"": ""Press"",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""FovDelta"",
+                    ""type"": ""PassThrough"",
+                    ""id"": ""d9ec08de-f27d-47cb-b762-eb57a4dcdf4c"",
+                    ""expectedControlType"": ""Axis"",
+                    ""processors"": """",
+                    ""interactions"": ""Press"",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -302,6 +329,72 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Hit"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""251f16ac-4115-4488-acc0-e748a680963c"",
+                    ""path"": ""<Keyboard>/c"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""Binocucom"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9435f03d-64ca-4ff1-a5f4-57e42a2ed76d"",
+                    ""path"": ""<Mouse>/delta"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""MouseCamera"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d33cfaa4-268d-4988-a620-44de8d5224d5"",
+                    ""path"": ""<Mouse>/scroll/y"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""FovDelta"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""1D Axis"",
+                    ""id"": ""f7212c19-816b-4fe2-95d5-50cd943aba49"",
+                    ""path"": ""1DAxis"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""FovDelta"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""negative"",
+                    ""id"": ""f3fb79f1-8021-4a4a-b0d3-396deabcab71"",
+                    ""path"": ""<Keyboard>/g"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""FovDelta"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""positive"",
+                    ""id"": ""aa3de926-5c1d-4ddb-83a7-e7bd3a063d8f"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": ""Core"",
+                    ""action"": ""FovDelta"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
                 }
             ]
         }
@@ -333,6 +426,9 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         m_Core_Camera = m_Core.FindAction("Camera", throwIfNotFound: true);
         m_Core_Interact = m_Core.FindAction("Interact", throwIfNotFound: true);
         m_Core_Hit = m_Core.FindAction("Hit", throwIfNotFound: true);
+        m_Core_Binocucom = m_Core.FindAction("Binocucom", throwIfNotFound: true);
+        m_Core_MouseCamera = m_Core.FindAction("MouseCamera", throwIfNotFound: true);
+        m_Core_FovDelta = m_Core.FindAction("FovDelta", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -400,6 +496,9 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Core_Camera;
     private readonly InputAction m_Core_Interact;
     private readonly InputAction m_Core_Hit;
+    private readonly InputAction m_Core_Binocucom;
+    private readonly InputAction m_Core_MouseCamera;
+    private readonly InputAction m_Core_FovDelta;
     public struct CoreActions
     {
         private @OurInputs m_Wrapper;
@@ -410,6 +509,9 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         public InputAction @Camera => m_Wrapper.m_Core_Camera;
         public InputAction @Interact => m_Wrapper.m_Core_Interact;
         public InputAction @Hit => m_Wrapper.m_Core_Hit;
+        public InputAction @Binocucom => m_Wrapper.m_Core_Binocucom;
+        public InputAction @MouseCamera => m_Wrapper.m_Core_MouseCamera;
+        public InputAction @FovDelta => m_Wrapper.m_Core_FovDelta;
         public InputActionMap Get() { return m_Wrapper.m_Core; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -437,6 +539,15 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
             @Hit.started += instance.OnHit;
             @Hit.performed += instance.OnHit;
             @Hit.canceled += instance.OnHit;
+            @Binocucom.started += instance.OnBinocucom;
+            @Binocucom.performed += instance.OnBinocucom;
+            @Binocucom.canceled += instance.OnBinocucom;
+            @MouseCamera.started += instance.OnMouseCamera;
+            @MouseCamera.performed += instance.OnMouseCamera;
+            @MouseCamera.canceled += instance.OnMouseCamera;
+            @FovDelta.started += instance.OnFovDelta;
+            @FovDelta.performed += instance.OnFovDelta;
+            @FovDelta.canceled += instance.OnFovDelta;
         }
 
         private void UnregisterCallbacks(ICoreActions instance)
@@ -459,6 +570,15 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
             @Hit.started -= instance.OnHit;
             @Hit.performed -= instance.OnHit;
             @Hit.canceled -= instance.OnHit;
+            @Binocucom.started -= instance.OnBinocucom;
+            @Binocucom.performed -= instance.OnBinocucom;
+            @Binocucom.canceled -= instance.OnBinocucom;
+            @MouseCamera.started -= instance.OnMouseCamera;
+            @MouseCamera.performed -= instance.OnMouseCamera;
+            @MouseCamera.canceled -= instance.OnMouseCamera;
+            @FovDelta.started -= instance.OnFovDelta;
+            @FovDelta.performed -= instance.OnFovDelta;
+            @FovDelta.canceled -= instance.OnFovDelta;
         }
 
         public void RemoveCallbacks(ICoreActions instance)
@@ -493,5 +613,8 @@ public partial class @OurInputs: IInputActionCollection2, IDisposable
         void OnCamera(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
         void OnHit(InputAction.CallbackContext context);
+        void OnBinocucom(InputAction.CallbackContext context);
+        void OnMouseCamera(InputAction.CallbackContext context);
+        void OnFovDelta(InputAction.CallbackContext context);
     }
 }

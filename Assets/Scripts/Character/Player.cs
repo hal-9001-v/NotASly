@@ -32,6 +32,7 @@ public class Player : MonoBehaviour
     Gripper Gripper => GetComponent<Gripper>();
     Aligner Aligner => GetComponent<Aligner>();
     Launchable Launchable => GetComponent<Launchable>();
+    FirstPerson FirstPerson => GetComponent<FirstPerson>();
     Venter Venter => GetComponent<Venter>();
     PickPocketer PickPocketer => GetComponent<PickPocketer>();
     Interactor Interactor => GetComponent<Interactor>();
@@ -44,8 +45,10 @@ public class Player : MonoBehaviour
     GroundCheck GroundCheck => GetComponent<GroundCheck>();
 
     [SerializeField] float cameraSpeed = 5f;
+    [SerializeField] float mouseCameraSpeed = 5f;
 
     Vector2 cameraDirection;
+    float fovDelta;
 
     [SerializeField] States currentState;
 
@@ -65,6 +68,7 @@ public class Player : MonoBehaviour
         Fall,
         Path,
         Point,
+        FirstPerson,
         Launched,
         Aligning,
         Stunned,
@@ -75,6 +79,7 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         ChangeState(States.Move);
+        Cursor.lockState = CursorLockMode.Locked;
     }
 
     private void Start()
@@ -159,6 +164,9 @@ public class Player : MonoBehaviour
                 }
                 break;
 
+            case States.FirstPerson:
+                FirstPerson.Move(cameraDirection);
+                break;
             case States.Fall:
                 if (GroundCheck.IsGrounded)
                 {
@@ -205,7 +213,7 @@ public class Player : MonoBehaviour
             case States.Venting:
                 Venter.Move(cameraFollow.rotation * direction);
 
-                if (Venter.IsVenting == false)
+                if (Venter.IsInside == false)
                 {
                     Venter.Release();
                     ChangeState(States.Move);
@@ -219,7 +227,7 @@ public class Player : MonoBehaviour
 
     private void LateUpdate()
     {
-        cameraFollow.Rotate(Vector3.up, cameraDirection.x * cameraSpeed * Time.deltaTime);
+        cameraFollow.Rotate(Vector3.up, cameraDirection.x * Time.deltaTime);
     }
 
     public void OnMove(InputValue value)
@@ -230,7 +238,35 @@ public class Player : MonoBehaviour
 
     public void OnCamera(InputValue value)
     {
-        cameraDirection = value.Get<Vector2>();
+        cameraDirection = value.Get<Vector2>() * cameraSpeed;
+
+    }
+
+    public void OnMouseCamera(InputValue value)
+    {
+        cameraDirection = value.Get<Vector2>() * mouseCameraSpeed;
+    }
+
+    public void OnBinocucom()
+    {
+        if (currentState == States.FirstPerson)
+        {
+            FirstPerson.Dettach();
+            ChangeState(States.Move);
+        }
+        else if (currentState == States.Move)
+        {
+            FirstPerson.Attatch();
+            ChangeState(States.FirstPerson);
+        }
+    }
+
+    public void OnFovDelta(InputValue value)
+    {
+        if (currentState == States.FirstPerson)
+        {
+            FirstPerson.ChangeFov(value.Get<float>());
+        }
     }
 
     public void OnJump()
@@ -379,6 +415,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -389,6 +426,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -399,6 +437,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -409,6 +448,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -418,8 +458,18 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
+                break;
+
+            case States.FirstPerson:
+                Mover.enabled = false;
+                Aligner.enabled = false;
+                Gripper.enabled = false;
+                Venter.enabled = false;
+                Launchable.enabled = false;
+                FirstPerson.enabled = true;
                 break;
 
             case States.Aligning:
@@ -428,6 +478,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -438,6 +489,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = true;
                 Venter.enabled = false;
                 Launchable.enabled = false;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;
@@ -447,6 +499,7 @@ public class Player : MonoBehaviour
                 Aligner.enabled = false;
                 Gripper.enabled = false;
                 Venter.enabled = true;
+                FirstPerson.enabled = false;
 
                 Venter.Attach();
 
@@ -459,6 +512,7 @@ public class Player : MonoBehaviour
                 Gripper.enabled = false;
                 Venter.enabled = false;
                 Launchable.enabled = true;
+                FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
                 break;

@@ -6,6 +6,8 @@ using UnityEngine;
 public class CameraSelector : MonoBehaviour
 {
     [SerializeField] CinemachineVirtualCamera followCamera;
+    [SerializeField] CinemachineVirtualCamera binocucomCamera;
+    public CinemachineVirtualCamera BinocucomCamera => binocucomCamera;
     [SerializeField] CinemachineVirtualCamera ventCamera;
 
     public void UseFollowCamera()
@@ -16,6 +18,11 @@ public class CameraSelector : MonoBehaviour
     public void UseVentCamera()
     {
         UseCamera(ventCamera);
+    }
+
+    public void UseBinocucomCamera()
+    {
+        UseCamera(binocucomCamera);
     }
 
     public void UseCamera(CinemachineVirtualCamera camera)

@@ -11,9 +11,7 @@ public class Venter : MonoBehaviour
     [SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
     [SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
 
-    public bool IsVenting => IsInEntry || IsInside;
     public bool IsInside;
-    public bool IsInEntry;
 
     CharacterController CharacterController => GetComponent<CharacterController>();
     float defaultControllerHeight;
@@ -27,7 +25,7 @@ public class Venter : MonoBehaviour
 
     public bool Check()
     {
-        if (IsVenting)
+        if (IsInside)
         {
             return true;
         }

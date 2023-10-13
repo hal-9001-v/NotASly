@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class Vent : MonoBehaviour
 {
-    [SerializeField] TriggerInteractable[] entries;
     [SerializeField] TriggerInteractable inside;
 
     private void Start()
@@ -12,11 +11,6 @@ public class Vent : MonoBehaviour
         inside.OnEnterAction += CheckInsideIn;
         inside.OnExitAction += CheckInsideOut;
 
-        foreach (var entry in entries)
-        {
-            entry.OnEnterAction += CheckEntryIn;
-            entry.OnExitAction += CheckEntryOut;
-        }
     }
 
     void CheckInsideIn(Interactor interactor)
@@ -34,24 +28,6 @@ public class Vent : MonoBehaviour
         if (venter)
         {
             venter.IsInside = false;
-        }
-    }
-
-    void CheckEntryIn(Interactor interactor)
-    {
-        var venter = interactor.GetComponent<Venter>();
-        if (venter)
-        {
-            venter.IsInEntry = true;
-        }
-    }
-
-    void CheckEntryOut(Interactor interactor)
-    {
-        var venter = interactor.GetComponent<Venter>();
-        if (venter)
-        {
-            venter.IsInEntry = false;
         }
     }
 }
