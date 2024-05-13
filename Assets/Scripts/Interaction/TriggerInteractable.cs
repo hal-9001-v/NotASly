@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -18,10 +17,15 @@ public class TriggerInteractable : MonoBehaviour
 
     [SerializeField] InteractorTag targetTag;
 
-    public Collider Collider => GetComponent<Collider>();
+    public Collider Collider;
 
     private void Awake()
     {
+        if(Collider == null)
+        {
+            Collider = GetComponent<Collider>();
+        }
+
         Interactors = new List<Interactor>();
         Collider.isTrigger = true;
     }

@@ -12,7 +12,7 @@ public class WallSticker : MonoBehaviour, IPathFollower
 
     WallStick currentWall;
 
-    WallStick[] walls => FindObjectsByType<WallStick>(FindObjectsSortMode.None);
+    WallStick[] Walls => FindObjectsOfType<WallStick>();
 
     float t;
 
@@ -35,7 +35,7 @@ public class WallSticker : MonoBehaviour, IPathFollower
     {
         WallStick closest = null;
         float closestDistance = float.PositiveInfinity;
-        foreach (var wall in walls)
+        foreach (var wall in Walls)
         {
             var distance = Vector3.Distance(wall.GetClosestPoint(transform.position), transform.position);
             if (distance < checkDistance && distance < closestDistance)

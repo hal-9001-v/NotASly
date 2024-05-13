@@ -1,31 +1,43 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-[RequireComponent(typeof(TriggerInteractable))]
 public class Collectable : MonoBehaviour
 {
     public UnityEvent OnCollectEvent;
     public Action<Collector> OnCollectCallback;
+    public bool AutoCollect = false;
 
-    TriggerInteractable TriggerInteractable => GetComponent<TriggerInteractable>();
+    [SerializeField] TriggerInteractable triggerInteractable;
 
     private void Start()
     {
-        TriggerInteractable.OnEnterAction += OnEnter;
+        if (AutoCollect)
+        {
+            var collector = FindObjectOfType<Collector>();
+            if (collector != null)
+                Collect(collector);
+        }
+
+        if (triggerInteractable == null)
+            triggerInteractable = GetComponent<TriggerInteractable>();
+
+        triggerInteractable.OnEnterAction += OnEnter;
     }
 
     void OnEnter(Interactor interactor)
     {
+        if (OnCollectCallback == null) return;
+
         var collector = interactor.GetComponent<Collector>();
         if (collector != null)
-        {
-            OnCollectCallback.Invoke(collector);
-            OnCollectEvent.Invoke();
-        }
+            Collect(collector);
     }
 
+    void Collect(Collector collector)
+    {
+        OnCollectCallback?.Invoke(collector);
+        OnCollectEvent?.Invoke();
+    }
 
 }

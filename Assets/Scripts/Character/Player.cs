@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -48,7 +47,6 @@ public class Player : MonoBehaviour
     [SerializeField] float mouseCameraSpeed = 5f;
 
     Vector2 cameraDirection;
-    float fovDelta;
 
     [SerializeField] States currentState;
 
@@ -167,6 +165,7 @@ public class Player : MonoBehaviour
             case States.FirstPerson:
                 FirstPerson.Move(cameraDirection);
                 break;
+
             case States.Fall:
                 if (GroundCheck.IsGrounded)
                 {
@@ -210,10 +209,11 @@ public class Player : MonoBehaviour
                 }
 
                 break;
+
             case States.Venting:
                 Venter.Move(cameraFollow.rotation * direction);
 
-                if (Venter.IsInside == false)
+                if (Venter.Check() == false)
                 {
                     Venter.Release();
                     ChangeState(States.Move);
@@ -305,59 +305,71 @@ public class Player : MonoBehaviour
             return;
         }
 
-        if (GroundCheck.IsGrounded)
+        switch (currentState)
         {
-            if (WallSticker.Check())
-            {
-                UsePathFollower(WallSticker);
-            }
-            else if (Venter.Check())
-            {
-                ChangeState(States.Venting);
-            }
+            case States.Move:
 
-            if (currentState == States.Move)
-            {
-                if (Interactor.ActiveInteraction())
+                if (GroundCheck.IsGrounded)
                 {
+                    if (WallSticker.Check())
+                    {
+                        UsePathFollower(WallSticker);
+                    }
+                    else if (Venter.Check())
+                    {
+                        ChangeState(States.Venting);
+                    }
 
+                    if (Interactor.ActiveInteraction())
+                    {
+
+                    }
+                    else if (PickPocketer.Check())
+                    {
+                        PickPocketer.Poke();
+                    }
                 }
-                else if (PickPocketer.Check())
+                else
                 {
-                    PickPocketer.Poke();
+                    if (Roper.Check())
+                    {
+                        UsePathFollower(Roper);
+                    }
+                    else if (Piper.Check())
+                    {
+                        UsePathFollower(Piper);
+                    }
+                    else if (FallRoper.Check())
+                    {
+                        UsePathFollower(FallRoper);
+                    }
+                    else if (SharpPointer.Check())
+                    {
+                        Align(SharpPointer.GetClosest().Point, States.Point);
+                    }
                 }
-            }
 
-        }
-        else
-        {
-            if (Roper.Check())
-            {
-                UsePathFollower(Roper);
-            }
-            else if (Piper.Check())
-            {
-                UsePathFollower(Piper);
-            }
-            else if (FallRoper.Check())
-            {
-                UsePathFollower(FallRoper);
-            }
-            else if (SharpPointer.Check())
-            {
-                Align(SharpPointer.GetClosest().Point, States.Point);
-            }
+                break;
+            case States.Path:
+
+                break;
         }
 
     }
 
     public void OnHit()
     {
-        if (Meleer.hitting == false)
+        switch (currentState)
         {
-            Meleer.Hit();
-            PlayerAnimator.Hit();
+            case States.Move:
+                if (Meleer.hitting == false)
+                {
+                    Meleer.Hit();
+                    PlayerAnimator.Hit();
+                }
+                break;
         }
+
     }
     void UsePathFollower(IPathFollower follower)
     {
@@ -515,6 +527,10 @@ public class Player : MonoBehaviour
                 FirstPerson.enabled = false;
 
                 CameraSelector.UseFollowCamera();
+                break;
+
+            default:
+                Debug.LogError("Agrega el nuevo estado melón!");
                 break;
         }
         currentState = newState;

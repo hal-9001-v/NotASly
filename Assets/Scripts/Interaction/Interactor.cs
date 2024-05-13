@@ -8,7 +8,7 @@ public class Interactor : MonoBehaviour
     [SerializeField] InteractorTag interactorTag;
     public InteractorTag InteractorTag => interactorTag;
 
-    DirectInteractable[] DirectInteractables => FindObjectsByType<DirectInteractable>(FindObjectsSortMode.None);
+    DirectInteractable[] DirectInteractables => FindObjectsOfType<DirectInteractable>();
 
     public bool ActiveInteraction()
     {

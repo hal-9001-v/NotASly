@@ -12,8 +12,7 @@ public class PlayerAnimator : MonoBehaviour
 
     public const int HandsLayer = 1;
 
-    AnimatorMachine AnimatorMachine => GetComponent<AnimatorMachine>();
-
+    public AnimatorMachine AnimatorMachine => GetComponent<AnimatorMachine>();
 
     public void Idle()
     {
@@ -27,7 +26,7 @@ public class PlayerAnimator : MonoBehaviour
 
     public void Jump()
     {
-          AnimatorMachine.ChangeState(JumpState);
+        AnimatorMachine.ChangeState(JumpState);
     }
 
     public void Hit()

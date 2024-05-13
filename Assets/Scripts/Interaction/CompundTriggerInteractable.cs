@@ -62,4 +62,10 @@ public class CompundTriggerInteractable : TriggerInteractable
         OnExitAction?.Invoke(interactor);
     }
 
+    [ContextMenu("Get rriggers from children")]
+    void GetTriggersFromChildren()
+    {
+        triggerInteractables = GetComponentsInChildren<TriggerInteractable>();
+    }
+
 }

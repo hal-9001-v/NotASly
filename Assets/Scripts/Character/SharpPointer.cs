@@ -6,7 +6,7 @@ using UnityEngine;
 public class SharpPointer : MonoBehaviour
 {
     [SerializeField][Range(0, 5)] float checkRadius = 1f;
-    SharpPoint[] sharpPoints => FindObjectsByType<SharpPoint>(FindObjectsSortMode.None);
+    SharpPoint[] SharpPoints => FindObjectsOfType<SharpPoint>();
 
     public bool Check()
     {
@@ -26,7 +26,7 @@ public class SharpPointer : MonoBehaviour
     {
         SharpPoint closest = null;
         float closestDistance = float.MaxValue;
-        foreach (var point in sharpPoints)
+        foreach (var point in SharpPoints)
         {
 
             if (point.Point.y < transform.position.y && HorizontalDistance(transform.position, point.Point) < closestDistance)

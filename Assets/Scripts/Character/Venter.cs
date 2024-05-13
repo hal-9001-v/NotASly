@@ -11,9 +11,12 @@ public class Venter : MonoBehaviour
     [SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
     [SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
 
-    public bool IsInside;
+    bool isInside;
 
     CharacterController CharacterController => GetComponent<CharacterController>();
+
+    SightSensorTrigger SightTrigger => GetComponent<SightSensorTrigger>();
+
     float defaultControllerHeight;
     float defaultControllerRadius;
 
@@ -25,7 +28,7 @@ public class Venter : MonoBehaviour
 
     public bool Check()
     {
-        if (IsInside)
+        if (isInside)
         {
             return true;
         }
@@ -49,6 +52,18 @@ public class Venter : MonoBehaviour
     {
         var velocity = direction * speed + Vector3.down * gravity;
         CharacterController.Move(velocity * Time.deltaTime);
+    }
+
+    public void EnterVent()
+    {
+        isInside = true;
+        SightTrigger.CanBeSensed = false;
+    }
+
+    public void ExitVent()
+    {
+        isInside = false;
+        SightTrigger.CanBeSensed = true;
     }
 
     private void OnDrawGizmos()

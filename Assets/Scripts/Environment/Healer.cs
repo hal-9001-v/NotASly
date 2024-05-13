@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(TriggerInteractable))]
-public class HealCollectable : MonoBehaviour
+public class Healer : MonoBehaviour
 {
     public int healAmount = 1;
     Collectable Collectable => GetComponent<Collectable>();

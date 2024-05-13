@@ -16,18 +16,12 @@ public class Vent : MonoBehaviour
     void CheckInsideIn(Interactor interactor)
     {
         var venter = interactor.GetComponent<Venter>();
-        if (venter)
-        {
-            venter.IsInside = true;
-        }
+        venter?.EnterVent();
     }
 
     void CheckInsideOut(Interactor interactor)
     {
         var venter = interactor.GetComponent<Venter>();
-        if (venter)
-        {
-            venter.IsInside = false;
-        }
+        venter?.ExitVent();
     }
 }

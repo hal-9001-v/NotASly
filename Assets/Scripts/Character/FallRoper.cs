@@ -13,7 +13,7 @@ public class FallRoper : MonoBehaviour, IPathFollower
 
     FallRope currentRope;
 
-    FallRope[] ropes => FindObjectsByType<FallRope>(FindObjectsSortMode.None);
+    FallRope[] Ropes => FindObjectsOfType<FallRope>();
 
     float t;
 
@@ -41,7 +41,7 @@ public class FallRoper : MonoBehaviour, IPathFollower
     {
         FallRope closest = null;
         float closestDistance = float.MaxValue;
-        foreach (var rope in ropes)
+        foreach (var rope in Ropes)
         {
             var distance = Vector3.Distance(transform.position, rope.GetClosestPoint(transform.position));
             if (distance < CheckDistance && distance < closestDistance)

@@ -6,4 +6,5 @@ using UnityEngine;
 public class BaseSenseTrigger : MonoBehaviour
 {
     public Action<BaseSensor> OnSensed;
+    public bool CanBeSensed = true;
 }

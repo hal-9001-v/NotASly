@@ -18,6 +18,12 @@ public class SafeGroundChecker : MonoBehaviour
 
     public void GetToSafeGround()
     {
+        if(currentSafeGround == null)
+        {
+            Debug.LogError("No safe ground set");
+            return;
+        }
+
         transform.position = currentSafeGround.Position;
         OnSetSafe?.Invoke(currentSafeGround.Position);
     }
