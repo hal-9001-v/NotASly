@@ -42,6 +42,9 @@ public class Player : MonoBehaviour
     PlayerHud PlayerHud => FindObjectOfType<PlayerHud>();
 
     GroundCheck GroundCheck => GetComponent<GroundCheck>();
+    GameOver GameOver => FindObjectOfType<GameOver>();
+
+    Pause Pause => FindObjectOfType<Pause>();
 
     [SerializeField] float cameraSpeed = 5f;
     [SerializeField] float mouseCameraSpeed = 5f;
@@ -114,6 +117,11 @@ public class Player : MonoBehaviour
             CharacterController.enabled = controllerEnabled;
             Rigidbody.isKinematic = kinematic;
             ChangeState(States.Fall);
+        };
+
+        Health.OnDead += (pos) =>
+        {
+            GameOver.Show();
         };
     }
 
@@ -355,6 +363,11 @@ public class Player : MonoBehaviour
                 break;
         }
 
+    }
+
+    public void OnPause()
+    {
+        Pause.Switch();
     }
 
     public void OnHit()
