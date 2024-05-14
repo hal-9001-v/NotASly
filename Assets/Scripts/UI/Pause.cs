@@ -43,6 +43,8 @@ public class Pause : MonoBehaviour
         Time.timeScale = 0;
 
         instance.isPaused = true;
+
+        
     }
 
     public void Hide()

@@ -24,7 +24,7 @@ public class Mover : MonoBehaviour
     Vector3 direction;
     Vector3 launchVelocity;
 
-   
+
     private void OnDisable()
     {
         direction = Vector3.zero;
@@ -50,7 +50,6 @@ public class Mover : MonoBehaviour
             launchVelocity = Vector3.zero;
         }
 
-        Steer(direction);
 
         var velocity = ySpeed * Vector3.up;
         if (launchVelocity.magnitude > 0.1f)
@@ -68,7 +67,7 @@ public class Mover : MonoBehaviour
                     currentSpeed = speed;
                 }
 
-                velocity += rotatingPivot.forward * currentSpeed;
+                velocity += direction * currentSpeed;
             }
             else
             {
@@ -79,20 +78,29 @@ public class Mover : MonoBehaviour
         controller.Move(velocity * Time.deltaTime);
     }
 
-    public void Move(Vector3 direction)
+    public void MoveForward(bool applySteer = true)
+    {
+        Move(rotatingPivot.forward, applySteer);
+    }
+
+    public void Move(Vector3 direction, bool applySteer = true)
     {
         this.direction = direction;
+
+        if (applySteer)
+        {
+            Steer(direction);
+        }
     }
 
     public void Steer(Vector3 direction, bool insta = false)
     {
-
         if (direction.magnitude < 0.1f)
         {
             return;
         }
 
-        if(insta)
+        if (insta)
         {
             rotatingPivot.rotation = Quaternion.LookRotation(direction, Vector3.up);
             return;

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -41,6 +42,7 @@ public class Player : MonoBehaviour
     CameraSelector CameraSelector => FindObjectOfType<CameraSelector>();
     PlayerHud PlayerHud => FindObjectOfType<PlayerHud>();
 
+    PlayerMenace[] Menaces => FindObjectsOfType<PlayerMenace>();
     GroundCheck GroundCheck => GetComponent<GroundCheck>();
     GameOver GameOver => FindObjectOfType<GameOver>();
 
@@ -48,6 +50,8 @@ public class Player : MonoBehaviour
 
     [SerializeField] float cameraSpeed = 5f;
     [SerializeField] float mouseCameraSpeed = 5f;
+    [SerializeField] float maxMenaceRadius = 5;
+    [SerializeField] float minMenaceRadius = 2.5f;
 
     Vector2 cameraDirection;
 
@@ -62,6 +66,7 @@ public class Player : MonoBehaviour
     bool doubleJumpReady;
 
     IPathFollower currentPathFollower;
+
     enum States
     {
         None,
@@ -76,6 +81,8 @@ public class Player : MonoBehaviour
         Gripped,
         Venting,
     }
+
+
 
     private void Awake()
     {
@@ -139,6 +146,20 @@ public class Player : MonoBehaviour
         ChangeState(States.Move);
     }
 
+    Transform GetClosestMenace()
+    {
+        //Get the closest menace
+        var closestMenace = Menaces.OrderBy(m => Vector3.Distance(m.transform.position, transform.position)).FirstOrDefault();
+
+        if (closestMenace && Vector3.Distance(closestMenace.transform.position, transform.position) < maxMenaceRadius)
+        {
+            return closestMenace.transform;
+        }
+
+        return null;
+
+    }
+
     private void Update()
     {
         var rotatedDirection = cameraFollow.rotation * direction;
@@ -148,7 +169,28 @@ public class Player : MonoBehaviour
             case States.Move:
                 if (rotatedDirection.magnitude > 0.1f)
                 {
-                    Mover.Move(rotatedDirection);
+                    var closestMenace = GetClosestMenace();
+                    if (closestMenace)
+                    {
+                        var toMenace = closestMenace.position - transform.position;
+                        toMenace.y = 0;
+                        toMenace.Normalize();
+
+                        var rotation = Quaternion.LookRotation(toMenace, Vector3.up);
+                        var menaceMovement = rotation * new Vector3(input.x, 0, input.y);
+                        Debug.DrawLine(transform.position, transform.position + menaceMovement * 2, Color.red);
+
+                        var distance = Vector3.Distance(closestMenace.position, transform.position);
+                        var menaceFactor = Mathf.Clamp01((maxMenaceRadius - distance) / (maxMenaceRadius - minMenaceRadius));
+
+                        Mover.Move(Vector3.Lerp(rotatedDirection,menaceMovement, menaceFactor), false);
+                        Mover.Steer(toMenace);
+                    }
+                    else
+                    {
+                        Mover.Steer(rotatedDirection);
+                        Mover.MoveForward();
+                    }
                     if (GroundCheck.IsGrounded)
                         PlayerAnimator.Walk();
                     else
@@ -555,4 +597,12 @@ public class Player : MonoBehaviour
         ChangeState(States.Move);
     }
 
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, maxMenaceRadius);
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(transform.position, minMenaceRadius);
+    }
 }
