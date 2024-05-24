@@ -7,7 +7,7 @@ public class Piper : MonoBehaviour, IPathFollower
 
     public Vector3 PipePosition => currentPipe.Path.GetPosition(t);
 
-    Pipe[] pipes => FindObjectsOfType<Pipe>();
+    Pipe[] Pipes => FindObjectsOfType<Pipe>();
 
     public bool Attatched => currentPipe != null;
 
@@ -43,8 +43,12 @@ public class Piper : MonoBehaviour, IPathFollower
         }
 
         transform.position = currentPipe.Path.GetPosition(t);
+
+        //TODO: Fix this
+        var rotation = Quaternion.LookRotation(transform.forward, currentPipe.Path.GetTangent(t));
+        transform.rotation = rotation;
     }
- 
+
     private void OnDrawGizmosSelected()
     {
         Gizmos.DrawWireSphere(transform.position, checkDistance);
@@ -65,19 +69,18 @@ public class Piper : MonoBehaviour, IPathFollower
     {
         IPathInteractable closestPath = null;
         float closestDistance = Mathf.Infinity;
-        foreach (var pipe in pipes)
+        foreach (var pipe in Pipes)
         {
             var closest = pipe.GetClosestPoint(transform.position);
             Debug.DrawLine(transform.position, closest, Color.red);
-            if (closest.y < transform.position.y)
+
+            var distance = Vector3.Distance(closest, transform.position);
+            if (distance < checkDistance && distance < closestDistance)
             {
-                var distance = Vector2.Distance(new Vector3(closest.x, closest.z), new Vector3(transform.position.x, transform.position.z));
-                if (distance < checkDistance && distance < closestDistance)
-                {
-                    closestPath = pipe;
-                    closestDistance = distance;
-                }
+                closestPath = pipe;
+                closestDistance = distance;
             }
+
         }
 
         return closestPath;

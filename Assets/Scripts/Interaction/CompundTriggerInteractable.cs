@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CompundTriggerInteractable : TriggerInteractable
@@ -65,7 +66,8 @@ public class CompundTriggerInteractable : TriggerInteractable
     [ContextMenu("Get rriggers from children")]
     void GetTriggersFromChildren()
     {
-        triggerInteractables = GetComponentsInChildren<TriggerInteractable>();
+        
+        triggerInteractables = GetComponentsInChildren<TriggerInteractable>().Where((trigger) => trigger != this).ToArray();
     }
 
 }

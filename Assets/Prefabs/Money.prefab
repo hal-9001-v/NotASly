@@ -16,6 +16,7 @@ GameObject:
   - component: {fileID: 1682732026080219766}
   - component: {fileID: 5257066432971415883}
   - component: {fileID: 1269427007153282881}
+  - component: {fileID: 1052611779715265626}
   m_Layer: 10
   m_Name: Money
   m_TagString: Untagged
@@ -30,6 +31,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 414659403409223886}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 16, y: 20.14, z: 62.43}
   m_LocalScale: {x: 1, y: 1, z: 1}
@@ -38,7 +40,6 @@ Transform:
   - {fileID: 1996356150633629380}
   - {fileID: 8417594143325064731}
   m_Father: {fileID: 0}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!54 &4494003494401970779
 Rigidbody:
@@ -47,10 +48,21 @@ Rigidbody:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 414659403409223886}
-  serializedVersion: 2
+  serializedVersion: 4
   m_Mass: 1
   m_Drag: 0
   m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -97,7 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onStart: 0
   verticalFactor: 0.75
-  speed: 5
+  speed: 15
   speedVariation: 0.3
 --- !u!114 &4943092762745959489
 MonoBehaviour:
@@ -142,6 +154,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moneyValue: 1
   speed: 55.5
+  collectSound:
+    Guid:
+      Data1: -968303666
+      Data2: 1078460691
+      Data3: 965629084
+      Data4: -405287296
+    Path: event:/Coin
 --- !u!114 &5257066432971415883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -154,6 +173,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a262deef055004481cbafae7c5bc78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  destroyType: 0
 --- !u!135 &1269427007153282881
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -162,11 +182,32 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 414659403409223886}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 0
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 0.7
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1052611779715265626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 414659403409223886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd9071da6a37d454ab0526822b39ec88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gravity: 40
 --- !u!1 &2605848702785590905
 GameObject:
   m_ObjectHideFlags: 0
@@ -193,13 +234,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2605848702785590905}
+  serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: -0, z: -0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 0.10512347, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5045785345346795907}
-  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
 --- !u!33 &7584332539145155661
 MeshFilter:
@@ -263,7 +304,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71caa4054cbdae7478ad0369a1166c2b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rotationSpeed: {x: 0, y: 45, z: 0}
+  rotationSpeed: {x: 0, y: 360, z: 0}
   movementSpeed: {x: 0, y: 0, z: 0}
   scaleSpeed: {x: 0, y: 0, z: 0}
   looped: 0
@@ -297,13 +338,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7387427559399766036}
+  serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5045785345346795907}
-  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1721709715100050654
 MonoBehaviour:
@@ -323,7 +364,7 @@ MonoBehaviour:
   onExitEvent:
     m_PersistentCalls:
       m_Calls: []
-  debug: 1
+  debug: 0
   Interactors: []
   targetTag: 0
   Collider: {fileID: 882380085442364522}
@@ -335,8 +376,16 @@ SphereCollider:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7387427559399766036}
   m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
   m_IsTrigger: 1
+  m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
+  serializedVersion: 3
   m_Radius: 1
   m_Center: {x: 0, y: 0, z: 0}

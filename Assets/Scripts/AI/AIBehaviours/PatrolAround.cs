@@ -6,6 +6,7 @@ public class PatrolAround : IAIBeahaviour
 {
 
     [SerializeField] AIPath path;
+    public AIPath Path => path;
     [SerializeField] float speed;
 
     [SerializeField] FSMTimeCondition idleTimeCond;
@@ -15,6 +16,7 @@ public class PatrolAround : IAIBeahaviour
     AIMovement movement;
 
     public FSMCondition DoneCondition => throw new NotImplementedException();
+    public FSMCondition NoPathCondition => new FSMCondition(() => path == null);
 
     public FSMState GetFSMState(Guard guard)
     {
@@ -28,17 +30,17 @@ public class PatrolAround : IAIBeahaviour
 
         var idle = new FSMState("Idle", movement.Stop);
 
-        var move = new FSMState("Move", NextPoint, MoveToPoint);
+        if (path != null)
+        {
+            var move = new FSMState("Move", NextPoint, MoveToPoint);
+            var closeToPointCond = new FSMCondition(() => path.IsInsideControlPoint(currentPoint, guard.transform.position));
+            move.AddTransition(idle, closeToPointCond);
 
-        var closeToPointCond = new FSMCondition(() => path.IsInsideControlPoint(currentPoint, guard.transform.position));
+            idle.AddTransition(move, idleTimeCond);
+            currentPoint = path.GetClosestControlPointIndex(guard.transform.position);
+        }
 
-        move.AddTransition(idle, closeToPointCond);
-        idle.AddTransition(move, idleTimeCond);
-
-        currentPoint = path.GetClosestControlPointIndex(guard.transform.position);
-
-        return new FSMachine(move, true);
-
+        return new FSMachine(idle, true);
     }
 
 
@@ -49,12 +51,23 @@ public class PatrolAround : IAIBeahaviour
             Debug.LogError("No AIMovement component found on body");
             return;
         }
+
+        if (path == null)
+        {
+            return;
+        }
+
         movement.Speed = speed;
         movement.GoToPosition(path.GetControlPoint(currentPoint));
     }
 
     void NextPoint()
     {
+        if (path == null)
+        {
+            return;
+        }
+
         currentPoint = path.NextPoint(currentPoint);
     }
 

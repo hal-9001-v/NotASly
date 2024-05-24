@@ -11,7 +11,9 @@ public class SightSensor : BaseSensor
     [SerializeField][Range(1, 50)] private float range = 10;
     [SerializeField][Range(1, 180)] private float angle = 45;
 
+    [SerializeField] LayerMask sceneMask;
     SightSensorTrigger[] SightSensorTriggers => FindObjectsOfType<SightSensorTrigger>().Where((trigger) => trigger.CanBeSensed).ToArray();
+
 
     public List<SightSensorTrigger> TriggersOnSight { get; private set; }
     public SightSensorTrigger LastSeen { get; private set; }
@@ -89,5 +91,7 @@ public class SightSensor : BaseSensor
         Gizmos.DrawLine(transform.position, transform.position + transform.forward * range);
         Gizmos.DrawRay(transform.position, Quaternion.Euler(0, angle, 0) * transform.forward * range);
         Gizmos.DrawRay(transform.position, Quaternion.Euler(0, -angle, 0) * transform.forward * range);
+
+
     }
 }

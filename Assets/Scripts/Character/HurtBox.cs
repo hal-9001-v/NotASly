@@ -15,6 +15,15 @@ public class HurtBox : MonoBehaviour
     public Action<Health> OnHurt;
     public UnityEvent OnHurtEvent;
 
+    public enum HurtType
+    {
+        Physical,
+        Lightning,
+        Fire,
+    }
+
+    [field: SerializeField] public HurtType Type { get; set; }
+
     public bool Apply
     {
         set
@@ -34,7 +43,7 @@ public class HurtBox : MonoBehaviour
         Health health = interactor.GetComponent<Health>();
         if (health != null)
         {
-            health.TakeDamage(damage);
+            health.TakeDamage(damage, transform.position, Type);
             OnHurt?.Invoke(health);
             OnHurtEvent?.Invoke();
         }

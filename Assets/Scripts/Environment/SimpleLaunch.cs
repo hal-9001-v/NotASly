@@ -7,7 +7,7 @@ public class SimpleLaunch : MonoBehaviour
 {
     [SerializeField] bool onStart;
     [SerializeField][Range(0, 1)] float verticalFactor = 0.75f;
-    [SerializeField][Range(1, 10)] float speed = 5;
+    [SerializeField][Range(1, 50)] float speed = 5;
     [SerializeField] [Range(0, 1)] float speedVariation = 0.5f;
 
     Rigidbody Rigidbody => GetComponent<Rigidbody>();

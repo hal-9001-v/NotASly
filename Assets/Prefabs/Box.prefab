@@ -16,12 +16,16 @@ GameObject:
   - component: {fileID: 4562545534195651444}
   - component: {fileID: 3155322951140716877}
   - component: {fileID: 1356606026292727203}
+  - component: {fileID: 8949339475796771770}
+  - component: {fileID: 7393328928023067217}
+  - component: {fileID: 451166837337298547}
+  - component: {fileID: 7747371494378049735}
   m_Layer: 0
   m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
+  m_StaticEditorFlags: 2147483647
   m_IsActive: 1
 --- !u!4 &2415288885373579387
 Transform:
@@ -31,7 +35,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9170141862230332082}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.21767457, z: -0, w: 0.9760214}
+  m_LocalRotation: {x: 0, y: 0.2176748, z: 0, w: 0.9760214}
   m_LocalPosition: {x: 16.24, y: 19.53, z: 66.18}
   m_LocalScale: {x: 1.8541801, y: 1.8541801, z: 1.8541801}
   m_ConstrainProportionsScale: 0
@@ -121,6 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 57f38890cf81f924591165cdc819c124, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  directInteractionRange: 1
   interactorTag: 0
 --- !u!114 &4562545534195651444
 MonoBehaviour:
@@ -143,17 +148,17 @@ MonoBehaviour:
   OnDeadEvent:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 9170141862230332082}
-        m_TargetAssemblyTypeName: UnityEngine.GameObject, UnityEngine
-        m_MethodName: SetActive
-        m_Mode: 6
+      - m_Target: {fileID: 7747371494378049735}
+        m_TargetAssemblyTypeName: Destroyer, Tools
+        m_MethodName: Destroy
+        m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
-          m_BoolArgument: 0
+          m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 3155322951140716877}
         m_TargetAssemblyTypeName: Spawner, Tools
@@ -162,7 +167,31 @@ MonoBehaviour:
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 1
+          m_IntArgument: 3
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 8949339475796771770}
+        m_TargetAssemblyTypeName: FMODSounder, Assembly-CSharp
+        m_MethodName: PlaySound
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 451166837337298547}
+        m_TargetAssemblyTypeName: SoundTrigger, Assembly-CSharp
+        m_MethodName: Noise
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
           m_BoolArgument: 0
@@ -1690,8 +1719,69 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 293
+  m_VersionIndex: 296
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
   m_SelectedVertices: 
+--- !u!114 &8949339475796771770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9170141862230332082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1070e9b038b01de478d6c0be34d4be1a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  soundReference:
+    Guid:
+      Data1: 2038954053
+      Data2: 1178022145
+      Data3: 1770033820
+      Data4: -140415641
+    Path: event:/BreakWood
+--- !u!114 &7393328928023067217
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9170141862230332082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76046d7a407e86f4a859f536f7c70539, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Collider: {fileID: 0}
+--- !u!114 &451166837337298547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9170141862230332082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ba260ec481e754bac5c07e3de39b36, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  CanBeSensed: 1
+  soundRadius: 10
+  duration:
+    time: 0
+--- !u!114 &7747371494378049735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9170141862230332082}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 86a262deef055004481cbafae7c5bc78, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  destroyType: 1

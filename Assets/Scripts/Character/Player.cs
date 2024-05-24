@@ -176,15 +176,8 @@ public class Player : MonoBehaviour
                         toMenace.y = 0;
                         toMenace.Normalize();
 
-                        var rotation = Quaternion.LookRotation(toMenace, Vector3.up);
-                        var menaceMovement = rotation * new Vector3(input.x, 0, input.y);
-                        Debug.DrawLine(transform.position, transform.position + menaceMovement * 2, Color.red);
-
-                        var distance = Vector3.Distance(closestMenace.position, transform.position);
-                        var menaceFactor = Mathf.Clamp01((maxMenaceRadius - distance) / (maxMenaceRadius - minMenaceRadius));
-
-                        Mover.Move(Vector3.Lerp(rotatedDirection,menaceMovement, menaceFactor), false);
                         Mover.Steer(toMenace);
+                        Mover.Move(rotatedDirection);
                     }
                     else
                     {

@@ -1,4 +1,5 @@
 using UnityEngine;
+using FMODUnity;
 
 [RequireComponent(typeof(Collectable))]
 [RequireComponent(typeof(Destroyer))]
@@ -6,6 +7,7 @@ public class MoneyCollectable : MonoBehaviour
 {
     [SerializeField][Range(1, 100)] int moneyValue = 1;
     [SerializeField][Range(1,100)] float speed = 10;
+    [SerializeField] EventReference collectSound;
 
     Collectable Collectable => GetComponent<Collectable>();
     Destroyer Destroyer => GetComponent<Destroyer>();
@@ -37,6 +39,7 @@ public class MoneyCollectable : MonoBehaviour
             if ((transform.position - inventory.transform.position).sqrMagnitude < 0.25f)
             {
                 inventory.ChangeMoney(moneyValue);
+                SoundManager.Instance.PlaySound(collectSound, transform.position);
                 Destroyer.Destroy();
             }
         }

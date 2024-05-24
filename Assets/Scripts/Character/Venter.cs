@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -10,11 +8,12 @@ public class Venter : MonoBehaviour
     [SerializeField] float gravity = 20f;
     [SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
     [SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
+    [SerializeField] Transform body;
+    [SerializeField] Transform cameraLookAt;
 
     bool isInside;
 
     CharacterController CharacterController => GetComponent<CharacterController>();
-
     SightSensorTrigger SightTrigger => GetComponent<SightSensorTrigger>();
 
     float defaultControllerHeight;
@@ -52,6 +51,11 @@ public class Venter : MonoBehaviour
     {
         var velocity = direction * speed + Vector3.down * gravity;
         CharacterController.Move(velocity * Time.deltaTime);
+
+        var lookAt = cameraLookAt.forward;
+        lookAt.y = 0;
+        lookAt.Normalize();
+        body.rotation = Quaternion.LookRotation(lookAt, Vector3.up);
     }
 
     public void EnterVent()

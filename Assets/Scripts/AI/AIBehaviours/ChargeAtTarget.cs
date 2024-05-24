@@ -31,7 +31,7 @@ public class ChargeAtTarget : IAIBeahaviour
 
         var charge = new FSMState("Charge", StartCharge, Charge);
 
-        var recover = new FSMState("Recover", Recover,null, () => doneCharging = true);
+        var recover = new FSMState("Recover", Recover, null, () => doneCharging = true);
 
         idle.AddTransition(charge, faceTimeCond);
         charge.AddTransition(recover, new FSMCondition(() => guard.WallSensor.IsTouchingWall));
@@ -42,6 +42,14 @@ public class ChargeAtTarget : IAIBeahaviour
 
     void StartCharge()
     {
+        if (target == null)
+        {
+            target = targetProvider.LastTarget;
+        }
+
+        if (target == null)
+            return;
+
         direction = target.position - movement.transform.position;
         direction.y = 0;
         direction.Normalize();

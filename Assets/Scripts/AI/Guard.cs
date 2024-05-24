@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class Guard : MonoBehaviour
+public class Guard : MonoBehaviour, IRespawnable
 {
     [SerializeField] SightSensor sightSensor;
     public SightSensor SightSensor => sightSensor;
@@ -69,6 +69,7 @@ public class Guard : MonoBehaviour
         FSMCondition foundPlayer = new FSMCondition(() => TargetProvider.HasTargets);
 
         patrolState.AddTransition(chaseState, foundPlayer);
+        patrolState.AddTransition(goCheckState, new FSMCondition(() => soundSensor.IsSensing));
 
         chaseState.AddTransition(new FSMCondition(() =>
         {
@@ -82,12 +83,10 @@ public class Guard : MonoBehaviour
             return Vector3.Distance(transform.position, target.position) < 5;
         }), chargeState);
 
-        patrolState.AddTransition(goCheck.GetFSMState(this), new FSMCondition(() => soundSensor.IsSensing));
         goCheckState.AddTransition(patrolState, goCheck.DoneCondition);
         goCheckState.AddTransition(chaseState, foundPlayer);
 
-
-        machine = new FSMachine(patrolState, false, "Guard");
+        machine = new FSMachine(patrolState, true, "Guard");
     }
 
     void StartChase()
@@ -109,4 +108,8 @@ public class Guard : MonoBehaviour
         machine.Update();
     }
 
+    public void Respawn()
+    {
+        machine.Reset();
+    }
 }

@@ -22,6 +22,7 @@ public class SoundTrigger : BaseSenseTrigger
     public void Noise()
     {
         CanBeSensed = true;
+        duration.ResetTimer();
     }
 
 

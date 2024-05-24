@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7917925539495294158}
   - component: {fileID: -1871998101886860910}
   - component: {fileID: 6658292257289811200}
+  - component: {fileID: 8624523395524461998}
   m_Layer: 10
   m_Name: Heal
   m_TagString: Untagged
@@ -71,6 +72,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 86a262deef055004481cbafae7c5bc78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  destroyType: 0
 --- !u!114 &7917925539495294158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,8 +141,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   onStart: 0
   verticalFactor: 0.75
-  speed: 5
+  speed: 15
   speedVariation: 0.5
+--- !u!114 &8624523395524461998
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 249588909699966487}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bd9071da6a37d454ab0526822b39ec88, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gravity: 40
 --- !u!1 &2148851908426525986
 GameObject:
   m_ObjectHideFlags: 0
@@ -325,6 +340,7 @@ MonoBehaviour:
   debug: 0
   Interactors: []
   targetTag: 0
+  Collider: {fileID: 0}
 --- !u!114 &8842828684067255160
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -386,6 +402,8 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  AutoCollect: 0
+  triggerInteractable: {fileID: 0}
 --- !u!1 &8316148531636223538
 GameObject:
   m_ObjectHideFlags: 0
