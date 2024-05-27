@@ -15,7 +15,7 @@ public class Spawner : MonoBehaviour
         }
     }
 
-    public void SpawnObject()
+    public Spawnable SpawnObject()
     {
         int totalTickets = 0;
         foreach (Spawn spawn in spawns)
@@ -32,9 +32,11 @@ public class Spawner : MonoBehaviour
             {
                 var spawnable = Instantiate(spawns[j].prefab, transform.position, Quaternion.identity);
                 spawnable.Spawn();
-                return;
+                return spawnable;
             }
         }
+
+        return null;
     }
 
     [Serializable]

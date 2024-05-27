@@ -48,4 +48,10 @@ public class SoundSensor : BaseSensor
 
         }
     }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, soundRadius);
+    }
 }

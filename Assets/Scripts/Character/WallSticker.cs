@@ -7,6 +7,7 @@ public class WallSticker : MonoBehaviour, IPathFollower
     public float CheckDistance => checkDistance;
 
     [SerializeField][Range(0, 5)] float checkDistance = 1.5f;
+    [SerializeField][Range(0, 5)] float offset;
 
     [SerializeField][Range(0, 10)] float speed;
 
@@ -58,15 +59,15 @@ public class WallSticker : MonoBehaviour, IPathFollower
         if (!Attatched)
             return;
 
-        if(pressing == false)
+        if (pressing == false)
         {
             Dettach();
             return;
         }
 
         if (direction.magnitude > 0.1f)
-            transform.position = currentWall.Path.GetPosition(t, out t, direction, speed * Time.deltaTime);
+            transform.position = currentWall.Path.GetPosition(t, out t, direction, speed * Time.deltaTime) + Vector3.up * offset;
         else
-            transform.position = currentWall.Path.GetPosition(t);
+            transform.position = currentWall.Path.GetPosition(t) + Vector3.up * offset;
     }
 }

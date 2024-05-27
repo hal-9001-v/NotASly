@@ -10,6 +10,7 @@ public class TriggerInteractable : MonoBehaviour
 
     public Action<Interactor> OnEnterAction;
     public Action<Interactor> OnExitAction;
+    public Action OnAnyEnterAction;
 
     [SerializeField] protected bool debug;
 
@@ -45,6 +46,8 @@ public class TriggerInteractable : MonoBehaviour
                 Debug.Log("TriggerInteractable: " + name + " enter triggered by " + interactor.name);
             }
         }
+
+        OnAnyEnterAction?.Invoke();
     }
 
     private void OnTriggerExit(Collider other)

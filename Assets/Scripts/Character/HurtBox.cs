@@ -10,7 +10,7 @@ public class HurtBox : MonoBehaviour
     [Header("Settings")]
     [SerializeField][Range(0, 10)] int damage;
 
-    TriggerInteractable trigger => GetComponent<TriggerInteractable>();
+    public TriggerInteractable Trigger => GetComponent<TriggerInteractable>();
 
     public Action<Health> OnHurt;
     public UnityEvent OnHurtEvent;
@@ -28,13 +28,13 @@ public class HurtBox : MonoBehaviour
     {
         set
         {
-            trigger.Collider.enabled = value;
+            Trigger.Collider.enabled = value;
         }
     }
 
     private void Start()
     {
-        trigger.OnEnterAction += Hurt;
+        Trigger.OnEnterAction += Hurt;
     }
 
     //Remember that either the Interactor or the HurtBox must have a rigidbody

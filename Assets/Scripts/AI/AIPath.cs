@@ -19,7 +19,7 @@ public class AIPath : MonoBehaviour
 
         LineRenderer.GetPositions(controlPoints);
 
-        if(LineRenderer.useWorldSpace == false)
+        if (LineRenderer.useWorldSpace == false)
         {
             for (int i = 0; i < controlPoints.Length; i++)
             {
@@ -44,7 +44,7 @@ public class AIPath : MonoBehaviour
 
     public int GetClosestControlPointIndex(Vector3 position)
     {
-        return controlPoints.Select((a, i) => new {a, i}).OrderBy((a) => Vector3.Distance(position, a.a)).First().i;
+        return controlPoints.Select((a, i) => new { a, i }).OrderBy((a) => Vector3.Distance(position, a.a)).First().i;
     }
 
     public Vector3 GetControlPoint(int i)
@@ -61,11 +61,28 @@ public class AIPath : MonoBehaviour
         return (i + 1) % controlPoints.Length;
     }
 
+    [ContextMenu("Circular Path")]
+    public void CircularPath()
+    {
+        int pointCount = 9;
+        float radius = 1;
+        controlPoints = new Vector3[pointCount];
+
+        for (int i = 0; i < pointCount; i++)
+        {
+            float angle = i * Mathf.PI * 2 / pointCount;
+            controlPoints[i] = new Vector3(Mathf.Cos(angle), 0, Mathf.Sin(angle)) * radius;
+        }
+
+        LineRenderer.positionCount = controlPoints.Length;
+        LineRenderer.SetPositions(controlPoints);
+    }
+
     private void OnDrawGizmosSelected()
     {
         var positions = new Vector3[LineRenderer.positionCount];
         LineRenderer.GetPositions(positions);
-        if(LineRenderer.useWorldSpace == false)
+        if (LineRenderer.useWorldSpace == false)
         {
             for (int i = 0; i < positions.Length; i++)
             {
