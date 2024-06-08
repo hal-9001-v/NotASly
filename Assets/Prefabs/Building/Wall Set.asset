@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d030fb7754dd56c4cac3612a49047f50, type: 3}
+  m_Name: Wall Set
+  m_EditorClassIdentifier: 
+  Objects:
+  - Object: {fileID: 1157350717039381363, guid: 0b2936bdf5aad5144b355f71fc929f84,
+      type: 3}
+    Weight: 20
+  - Object: {fileID: 2132205702819862809, guid: dfb7e3c1a6ab8384083fee9c9b78f565,
+      type: 3}
+    Weight: 3
