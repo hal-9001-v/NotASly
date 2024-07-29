@@ -10,7 +10,7 @@ public class InventoryCheck : MonoBehaviour
 
     [SerializeField] InventoryItem[] items;
 
-    Inventory Inventory => FindObjectOfType<Inventory>();
+    Inventory Inventory => FindAnyObjectByType<Inventory>();
 
     [ContextMenu("Check")]
     public void Check()

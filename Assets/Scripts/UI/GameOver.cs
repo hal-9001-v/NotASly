@@ -8,7 +8,7 @@ public class GameOver : MonoBehaviour
 {
     CanvasGroup CanvasGroup => GetComponent<CanvasGroup>();
 
-    SceneLoader SceneLoader => FindObjectOfType<SceneLoader>();
+    SceneLoader SceneLoader => FindAnyObjectByType<SceneLoader>();
 
     [SerializeField] Button retryButton;
     [SerializeField] Button exitButton;

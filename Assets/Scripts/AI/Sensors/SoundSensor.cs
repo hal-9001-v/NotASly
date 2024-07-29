@@ -6,7 +6,7 @@ public class SoundSensor : BaseSensor
 {
     [SerializeField][Range(1, 100)] float soundRadius = 10f;
 
-    SoundTrigger[] SoundTriggers => FindObjectsOfType<SoundTrigger>();
+    SoundTrigger[] SoundTriggers => FindObjectsByType<SoundTrigger>(FindObjectsSortMode.None);
 
     List<SoundTrigger> soundTriggers;
 

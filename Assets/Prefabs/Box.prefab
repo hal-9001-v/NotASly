@@ -20,7 +20,7 @@ GameObject:
   - component: {fileID: 7393328928023067217}
   - component: {fileID: 451166837337298547}
   - component: {fileID: 7747371494378049735}
-  m_Layer: 0
+  m_Layer: 12
   m_Name: Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -67,6 +67,9 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RayTracingMode: 2
   m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -1772,6 +1775,7 @@ MonoBehaviour:
   soundRadius: 10
   duration:
     time: 0
+    onlyOnce: 0
 --- !u!114 &7747371494378049735
 MonoBehaviour:
   m_ObjectHideFlags: 0

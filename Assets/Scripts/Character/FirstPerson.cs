@@ -1,53 +1,73 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using static UnityEditor.VersionControl.Asset;
 
-public class FirstPerson : MonoBehaviour
+public class FirstPerson : MonoBehaviour, IPlayerState
 {
-    [SerializeField] float cameraSpeed = 10f;
-    [SerializeField] Transform cameraLookAt;
+	[SerializeField] float cameraSpeed = 10f;
+	[SerializeField] Transform cameraLookAt;
 
-    [SerializeField] float minFOV = 30;
-    [SerializeField] float maxFOV = 60;
-    [SerializeField] float zoomSpeed = 10;
-    CameraSelector CameraSelector => FindObjectOfType<CameraSelector>();
+	[SerializeField] float minFOV = 30;
+	[SerializeField] float maxFOV = 60;
+	[SerializeField] float zoomSpeed = 10;
+	CameraSelector CameraSelector => FindAnyObjectByType<CameraSelector>();
+	Mover Mover => GetComponent<Mover>();
 
-    Vector3 cameraDirection;
+	public IPlayerState Next { get; private set; }
 
-    Vector3 angle;
+	Vector3 cameraDirection;
 
-    public void Attatch()
-    {
-        CameraSelector.UseBinocucomCamera();
-    }
+	Vector3 angle;
 
-    public void Move(Vector3 cameraDirection)
-    {
-        this.cameraDirection = cameraDirection.normalized;
-    }
+	public void Move(Vector3 cameraDirection)
+	{
+		this.cameraDirection = cameraDirection.normalized;
+	}
 
-    public void ChangeFov(float fovDelta)
-    {
-        if (fovDelta < 0)
-            fovDelta = 1;
-        else
-            fovDelta = -1;
-        
-        var newFov = CameraSelector.BinocucomCamera.m_Lens.FieldOfView + fovDelta * zoomSpeed * Time.deltaTime;
-        
-        CameraSelector.BinocucomCamera.m_Lens.FieldOfView = Mathf.Clamp(newFov, minFOV, maxFOV);
-    }
+	public void OnFovDelta(InputValue value)
+	{
+		ChangeFov(value.Get<float>());
+	}
 
-    private void LateUpdate()
-    {
-        angle.y += cameraDirection.x * cameraSpeed * Time.deltaTime;
+	public void ChangeFov(float fovDelta)
+	{
+		if (fovDelta < 0)
+			fovDelta = 1;
+		else
+			fovDelta = -1;
 
-        angle.x -= cameraDirection.y * cameraSpeed * Time.deltaTime;
-        angle.x = Mathf.Clamp(angle.x, -80, 80);
+		var newFov = CameraSelector.BinocucomCamera.Lens.FieldOfView + fovDelta * zoomSpeed * Time.deltaTime;
 
-        cameraLookAt.eulerAngles = angle;
-    }
+		CameraSelector.BinocucomCamera.Lens.FieldOfView = Mathf.Clamp(newFov, minFOV, maxFOV);
+	}
 
-    public void Dettach()
-    {
+	public void OnBinocucom()
+	{
+		Next = Mover;
+	}
 
-    }
+	private void LateUpdate()
+	{
+		angle.y += cameraDirection.x * cameraSpeed * Time.deltaTime;
+
+		angle.x -= cameraDirection.y * cameraSpeed * Time.deltaTime;
+		angle.x = Mathf.Clamp(angle.x, -80, 80);
+
+		cameraLookAt.eulerAngles = angle;
+	}
+
+	public void Enter()
+	{
+		CameraSelector.UseBinocucomCamera();
+	}
+
+	public void Exit()
+	{
+
+	}
+
+	public IPlayerState Check()
+	{
+		throw new System.NotImplementedException();
+	}
 }

@@ -14,7 +14,7 @@ public class Collectable : MonoBehaviour
     {
         if (AutoCollect)
         {
-            var collector = FindObjectOfType<Collector>();
+            var collector = FindAnyObjectByType<Collector>();
             if (collector != null)
                 Collect(collector);
         }

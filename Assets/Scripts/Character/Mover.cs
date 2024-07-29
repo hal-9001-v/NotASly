@@ -1,149 +1,206 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.Windows;
 
 [RequireComponent(typeof(CharacterController))]
-public class Mover : MonoBehaviour
+public class Mover : MonoBehaviour, IPlayerState
 {
-    [Header("References")]
-    [SerializeField] Transform rotatingPivot;
-    CharacterController controller => GetComponent<CharacterController>();
-    GroundCheck GroundCheck => GetComponentInChildren<GroundCheck>();
-    [Header("Movement")]
-    [SerializeField] float speed = 6f;
-    [SerializeField] float acceleration = 10f;
-    [SerializeField] float jumpHeight = 5;
-    [SerializeField] float doubleJumpHeight = 5;
-    [SerializeField] float gravity = -20;
+	[Header("References")]
+	[SerializeField] Transform rotatingPivot;
 
-    [SerializeField][Range(0, 720)] float rotatingSpeed;
+	[Header("Movement")]
+	[SerializeField] float speed = 6f;
+	[SerializeField] float acceleration = 10f;
+	[SerializeField] float airControl = 0.1f;
+	[SerializeField] float jumpHeight = 5;
+	[SerializeField] float doubleJumpHeight = 5;
+	[SerializeField] float gravity = -20;
 
-    [SerializeField] LayerMask groundMask;
+	[SerializeField][Range(0, 720)] float rotatingSpeed;
 
-    float currentSpeed;
-    float ySpeed;
+	float currentSpeed;
+	Vector3 velocity;
 
-    Vector3 direction;
-    Vector3 launchVelocity;
+	Vector3 movingDirection;
 
+	bool doubleJumpReady;
+	Player Player => GetComponent<Player>();
+	CharacterController Controller => GetComponent<CharacterController>();
+	GroundCheck GroundCheck => GetComponent<GroundCheck>();
+	PlayerAnimator PlayerAnimator => GetComponentInChildren<PlayerAnimator>();
+	PickPocketer PickPocketer => GetComponent<PickPocketer>();
+	Interactor Interactor => GetComponent<Interactor>();
+	CameraSelector CameraSelector => FindAnyObjectByType<CameraSelector>();
+	Meleer Meleer => GetComponent<Meleer>();
+	public IPlayerState Next { get; private set; }
 
-    private void OnDisable()
-    {
-        direction = Vector3.zero;
-        launchVelocity = Vector3.zero;
-        controller.Move(Vector3.zero);
-        ySpeed = 0;
-    }
+	IPlayerState[] interactionTransitions;
 
-    private void OnEnable()
-    {
-        launchVelocity = controller.velocity;
-        ySpeed = launchVelocity.y;
-        launchVelocity.y = 0;
-    }
+	public IPlayerState Check() => this;
 
-    private void FixedUpdate()
-    {
-        ySpeed += gravity * Time.deltaTime;
-        GroundCheck.SetYSpeed(ySpeed);
-        if (GroundCheck.IsGrounded)
-        {
-            ySpeed = 0f;
-            launchVelocity = Vector3.zero;
-        }
+	private void Awake()
+	{
+		interactionTransitions = new IPlayerState[]
+		{
+			GetComponent <WallSticker>(),
+			GetComponent<Venter>(),
+			GetComponent<Roper>(),
+			GetComponent<Piper>(),
+			GetComponent<Slider>(),
+			GetComponent<SharpPointer>(),
+			GetComponent<Gripper>(),
+		};
 
+		Exit();
+	}
 
-        var velocity = ySpeed * Vector3.up;
-        if (launchVelocity.magnitude > 0.1f)
-        {
-            velocity += launchVelocity;
+	private void FixedUpdate()
+	{
+		Move(Player.Direction);
+	}
 
-        }
-        else
-        {
-            if (direction.magnitude > 0.1f)
-            {
-                currentSpeed += acceleration * Time.fixedDeltaTime;
-                if (currentSpeed > speed)
-                {
-                    currentSpeed = speed;
-                }
+	public void Move(Vector3 direction)
+	{
+		velocity.y += gravity * Time.deltaTime;
+		GroundCheck.SetYSpeed(velocity.y);
+		Steer(direction);
 
-                velocity += direction * currentSpeed;
-            }
-            else
-            {
-                currentSpeed = 0;
-            }
-        }
+		if (GroundCheck.IsGrounded)
+		{
+			velocity.y = 0f;
 
-        controller.Move(velocity * Time.deltaTime);
-    }
+			if (direction.magnitude > 0.1f)
+			{
+				currentSpeed += acceleration * Time.fixedDeltaTime;
+				if (currentSpeed > speed)
+				{
+					currentSpeed = speed;
+				}
 
-    public void MoveForward(bool applySteer = true)
-    {
-        Move(rotatingPivot.forward, applySteer);
-    }
+				velocity = movingDirection * currentSpeed;
+			}
+			else
+			{
+				velocity = Vector3.zero;
 
-    public void Move(Vector3 direction, bool applySteer = true)
-    {
-        this.direction = direction;
+			}
+		}
+		else
+		{
+			var desiredVelocity = speed * movingDirection;
+			desiredVelocity.y = velocity.y;
 
-        if (applySteer)
-        {
-            Steer(direction);
-        }
-    }
+			velocity = Vector3.Lerp(velocity, desiredVelocity, airControl * Time.deltaTime);
+		}
 
-    public void Steer(Vector3 direction, bool insta = false)
-    {
-        if (direction.magnitude < 0.1f)
-        {
-            return;
-        }
+		//Just to avoid annoying messages from unity in the console :D
+		if (Controller.enabled)
+			Controller.Move(velocity * Time.deltaTime);
+	}
 
-        if (insta)
-        {
-            rotatingPivot.rotation = Quaternion.LookRotation(direction, Vector3.up);
-            return;
-        }
+	public void Steer(Vector3 direction, bool insta = false)
+	{
+		if (direction.magnitude < 0.1f)
+		{
+			movingDirection = Vector3.zero;
+			return;
+		}
 
-        var targetRotation = Quaternion.LookRotation(direction, Vector3.up);
+		if (insta)
+		{
+			rotatingPivot.rotation = Quaternion.LookRotation(direction, Vector3.up);
+			return;
+		}
 
-        var angle = Quaternion.Angle(rotatingPivot.rotation, targetRotation);
+		var targetRotation = Quaternion.LookRotation(direction, Vector3.up);
 
-        rotatingPivot.rotation = Quaternion.Lerp(rotatingPivot.rotation, targetRotation, Time.fixedDeltaTime * rotatingSpeed / angle);
-    }
+		var angle = Quaternion.Angle(rotatingPivot.rotation, targetRotation);
 
-    public void TeleportTo(Vector3 position)
-    {
-        direction = Vector3.zero;
+		rotatingPivot.rotation = Quaternion.Lerp(rotatingPivot.rotation, targetRotation, Time.fixedDeltaTime * rotatingSpeed / angle);
+		movingDirection = rotatingPivot.forward;
+	}
 
-        controller.enabled = false;
-        transform.position = position;
-        controller.enabled = true;
-    }
+	public void JumpWithInertia()
+	{
+		JumpWithInertia(Player.Direction);
+	}
 
-    public void Jump()
-    {
-        Jump(jumpHeight);
-    }
+	public void JumpWithInertia(Vector3 direction)
+	{
+		Jump();
+		velocity += direction * speed;
+	}
 
-    public void DoubleJump()
-    {
-        Jump(doubleJumpHeight);
-    }
+	public void Jump()
+	{
+		Jump(jumpHeight);
+	}
 
-    public void Jump(float height)
-    {
-        ySpeed = Mathf.Sqrt(height * -2f * gravity);
-    }
+	public void DoubleJump()
+	{
+		Jump(doubleJumpHeight);
+	}
 
-    public void Launch(Vector3 velocity)
-    {
-        enabled = true;
+	public void Jump(float height)
+	{
+		velocity.y = Mathf.Sqrt(height * -2f * gravity);
+		GroundCheck.SetYSpeed(velocity.y);
+	}
 
-        ySpeed = velocity.y;
+	void OnHit(InputValue value)
+	{
+		if(value.isPressed == false) return;
 
-        launchVelocity = velocity;
-        launchVelocity.y = 0;
-    }
+		if (enabled)
+		{
+			Meleer.Hit();
+		}
+	}
+
+	void OnInteract(InputValue value)
+	{
+		if (value.isPressed == false) return;
+
+		if (enabled && Next == null)
+		{
+			foreach (var transition in interactionTransitions)
+			{
+				Next = transition.Check();
+				if (Next != null)
+					break;
+
+			}
+		}
+	}
+
+	public void Enter()
+	{
+		CameraSelector.UseFollowCamera();
+		enabled = true;
+		doubleJumpReady = true;
+	}
+
+	public void Exit()
+	{
+		velocity = Vector3.zero;
+		enabled = false;
+		Next = null;
+	}
+
+	void OnJump()
+	{
+		if (GroundCheck.IsGrounded)
+		{
+			doubleJumpReady = true;
+			Jump();
+			PlayerAnimator.Jump();
+		}
+		else if (doubleJumpReady)
+		{
+			doubleJumpReady = false;
+			DoubleJump();
+			PlayerAnimator.Jump();
+		}
+	}
+
 }

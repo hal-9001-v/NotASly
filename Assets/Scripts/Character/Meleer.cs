@@ -12,6 +12,8 @@ public class Meleer : MonoBehaviour
     public bool hitting { get; private set; }
     public bool cding { get; private set; }
 
+    PlayerAnimator PlayerAnimator => FindAnyObjectByType<PlayerAnimator>();
+
     private void Awake()
     {
         timer = new Timer(0);
@@ -51,7 +53,8 @@ public class Meleer : MonoBehaviour
     {
         if (hitting && !forceHit) return;
 
-        timer.ResetTimer(hits[currentHit].duration);
+		PlayerAnimator.Hit();
+		timer.ResetTimer(hits[currentHit].duration);
         hits[currentHit].hurtBox.Apply = true;
 
         hitting = true;

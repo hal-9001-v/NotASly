@@ -17,7 +17,7 @@ public class SpawnBullet : MonoBehaviour
     {
         get
         {
-            var player = FindObjectOfType<Player>();
+            var player = FindAnyObjectByType<Player>();
             if (player != null)
             {
                 return player.transform;

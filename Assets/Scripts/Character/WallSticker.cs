@@ -1,73 +1,100 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class WallSticker : MonoBehaviour, IPathFollower
+public class WallSticker : MonoBehaviour, IPlayerState
 {
-    public bool Attatched => currentWall != null;
+	[SerializeField] Transform body;
+	[SerializeField][Range(0, 5)] float checkDistance = 1.5f;
+	[SerializeField][Range(0, 5)] float offset;
 
-    public float CheckDistance => checkDistance;
+	[SerializeField][Range(0, 10)] float speed;
 
-    [SerializeField][Range(0, 5)] float checkDistance = 1.5f;
-    [SerializeField][Range(0, 5)] float offset;
+	WallStick currentWall;
 
-    [SerializeField][Range(0, 10)] float speed;
+	WallStick[] Walls => FindObjectsByType<WallStick>(FindObjectsSortMode.None);
+	Mover Mover => GetComponent<Mover>();
+	Player Player => GetComponent<Player>();
 
-    WallStick currentWall;
+	public IPlayerState Next { get; private set; }
 
-    WallStick[] Walls => FindObjectsOfType<WallStick>();
+	float t;
 
-    float t;
+	void Awake()
+	{
+		Exit();
+	}
 
-    public void Attach()
-    {
-        currentWall = GetClosestPath() as WallStick;
-    }
+	public IPlayerState Check()
+	{
+		var closest = GetClosestPath();
 
-    public bool Check()
-    {
-        return GetClosestPath() != null;
-    }
+		if (closest != null)
+		{
+			currentWall = (WallStick)closest;
+			t = currentWall.Path.GetClosestT(transform.position);
+			return this;
+		}
+		else
+		{
+			return null;
+		}
+	}
 
-    public void Dettach()
-    {
-        currentWall = null;
-    }
+	public IPathInteractable GetClosestPath()
+	{
+		WallStick closest = null;
+		float closestDistance = float.PositiveInfinity;
+		foreach (var wall in Walls)
+		{
+			var distance = Vector3.Distance(wall.GetClosestPoint(transform.position), transform.position);
+			if (distance < checkDistance && distance < closestDistance)
+			{
+				closest = wall;
+				closestDistance = distance;
+			}
+		}
 
-    public IPathInteractable GetClosestPath()
-    {
-        WallStick closest = null;
-        float closestDistance = float.PositiveInfinity;
-        foreach (var wall in Walls)
-        {
-            var distance = Vector3.Distance(wall.GetClosestPoint(transform.position), transform.position);
-            if (distance < checkDistance && distance < closestDistance)
-            {
-                closest = wall;
-                closestDistance = distance;
-            }
-        }
+		return closest;
+	}
 
-        return closest;
-    }
+	public Vector3 GetClosestPoint()
+	{
+		return currentWall.GetClosestPoint(transform.position);
+	}
 
-    public Vector3 GetClosestPoint()
-    {
-        return currentWall.GetClosestPoint(transform.position);
-    }
+	void FixedUpdate()
+	{
+		Move(Player.Direction);
+	}
 
-    public void Move(Vector2 input, bool pressing, Vector3 direction)
-    {
-        if (!Attatched)
-            return;
+	public void Move(Vector3 direction)
+	{
+		if (direction.magnitude > 0.1f)
+			transform.position = currentWall.Path.GetPosition(t, out t, direction, speed * Time.deltaTime) + Vector3.up * offset;
+		else
+			transform.position = currentWall.Path.GetPosition(t) + Vector3.up * offset;
 
-        if (pressing == false)
-        {
-            Dettach();
-            return;
-        }
+		body.rotation = Quaternion.LookRotation(Vector3.Cross(currentWall.Path.GetTangent(t), Vector3.up), Vector3.up);
+	}
 
-        if (direction.magnitude > 0.1f)
-            transform.position = currentWall.Path.GetPosition(t, out t, direction, speed * Time.deltaTime) + Vector3.up * offset;
-        else
-            transform.position = currentWall.Path.GetPosition(t) + Vector3.up * offset;
-    }
+	private void OnJump()
+	{
+		if (enabled)
+		{
+			Mover.JumpWithInertia(Player.Direction);
+			Next = Mover;
+		}
+	}
+
+	public void Enter()
+	{
+		enabled = true;
+	}
+
+	public void Exit()
+	{
+		enabled = false;
+		currentWall = null;
+		Next = null;
+	}
 }

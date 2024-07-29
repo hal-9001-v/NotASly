@@ -4,12 +4,10 @@ using UnityEngine;
 
 public interface IPathFollower
 {
-    public bool Attatched { get; }
     public float CheckDistance { get; }
     public void Attach();
     public void Dettach();
-    public bool Check();
-    public void Move(Vector2 input, bool pressing, Vector3 direction);
+    public void Move();
 
     /// <summary>
     /// Returns ow far along the path the follower is. If it is out of range of the follower, it returns null

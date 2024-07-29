@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class InventoryItem : MonoBehaviour
 {
-    Inventory Inventory => FindObjectOfType<Inventory>();
+    Inventory Inventory => FindAnyObjectByType<Inventory>();
 
     [ContextMenu("Add to inventory")]
     public void AddToInventory()

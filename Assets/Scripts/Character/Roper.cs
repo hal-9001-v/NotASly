@@ -1,80 +1,126 @@
+using System.Collections.Generic;
 using UnityEngine;
 
-public class Roper : MonoBehaviour, IPathFollower
+public class Roper : MonoBehaviour, IPlayerState, ISafe
 {
-    [SerializeField][Range(1, 10)] float speed;
-    [SerializeField][Range(0, 5)] float checkDistance;
+	[SerializeField][Range(0, 2)] float yOffset;
+	[SerializeField][Range(1, 10)] float speed;
+	[SerializeField][Range(0, 5)] float checkDistance;
 
-    public Vector3 RopePosition => currentRope.Path.GetPosition(t);
+	public Vector3 RopePosition => currentRope.Path.GetPosition(t);
+	Mover Mover => GetComponent<Mover>();
+	Rope[] Ropes => FindObjectsByType<Rope>(FindObjectsSortMode.None);
 
-    Rope[] ropes => FindObjectsOfType<Rope>();
+	Player Player => GetComponent<Player>();
 
-    public bool Attatched => currentRope != null;
+	Aligner Aligner => GetComponent<Aligner>();
 
-    public float CheckDistance => checkDistance;
 
-    Rope currentRope;
-    float t;
+	public float CheckDistance => checkDistance;
 
-    public bool Check()
-    {
-        var closest = GetClosestPath();
-        if (closest != null)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
+	public float SafeT;
 
-    public void Move(Vector2 input, bool pressing, Vector3 direction)
-    {
-        if (!Attatched)
-            return;
+	public IPlayerState Next { get; private set; }
 
-        if (direction.magnitude > 0.1f)
-            transform.position = currentRope.Path.GetPosition(t, out t, direction, speed * Time.deltaTime);
-        else
-            transform.position = currentRope.Path.GetPosition(t);
-    }
+	Rope currentRope;
+	float t;
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.DrawWireSphere(transform.position, checkDistance);
-    }
+	private void Awake()
+	{
+		Exit();
+	}
 
-    public void Attach()
-    {
-        currentRope = (Rope)GetClosestPath();
-        t = currentRope.Path.GetClosestT(transform.position);
-    }
+	public IPlayerState Check()
+	{
+		var closest = GetClosestPath();
+		if (closest != null)
+		{
+			currentRope = (Rope)GetClosestPath();
+			t = currentRope.Path.GetClosestT(transform.position);
+			return Aligner.Align(closest.GetClosestPoint(transform.position), this);
+		}
+		else
+		{
+			return null;
+		}
+	}
 
-    public void Dettach()
-    {
-        currentRope = null;
-    }
+	private void Update()
+	{
+		Move(Player.Direction);
+	}
 
-    public IPathInteractable GetClosestPath()
-    {
-        Rope closest = null;
-        float closesDistance = float.MaxValue;
-        foreach (var rope in ropes)
-        {
-            var distance = Vector3.Distance(transform.position, rope.GetClosestPoint(transform.position));
-            if (distance < checkDistance && distance < closesDistance)
-            {
-                closesDistance = distance;
-                closest = rope;
-            }
-        }
+	public void Move(Vector3 direction)
+	{
+		if (direction.magnitude > 0.1f)
+		{
+			var movement = transform.position;
+			transform.position = currentRope.Path.GetPosition(t, out t, direction, speed * Time.deltaTime) + Vector3.up * yOffset;
+			movement = transform.position - movement;
 
-        return closest;
-    }
+			movement.y = 0;
+			movement.Normalize();
 
-    public Vector3 GetClosestPoint()
-    {
-        return currentRope.GetClosestPoint(transform.position);
-    }
+			Mover.Steer(movement);
+
+		}
+		else
+			transform.position = currentRope.Path.GetPosition(t) + Vector3.up * yOffset;
+
+		SafeT = t;
+	}
+
+	private void OnDrawGizmosSelected()
+	{
+		Gizmos.DrawWireSphere(transform.position, checkDistance);
+	}
+
+	public IPathInteractable GetClosestPath()
+	{
+		Rope closest = null;
+		float closesDistance = float.MaxValue;
+		foreach (var rope in Ropes)
+		{
+			var distance = Vector3.Distance(transform.position, rope.GetClosestPoint(transform.position));
+			if (distance < checkDistance && distance < closesDistance)
+			{
+				closesDistance = distance;
+				closest = rope;
+			}
+		}
+
+		return closest;
+	}
+
+	public Vector3 GetClosestPoint()
+	{
+		return currentRope.GetClosestPoint(transform.position);
+	}
+
+	void OnJump()
+	{
+		if (enabled)
+		{
+			Mover.JumpWithInertia();
+			Next = Mover;
+		}
+	}
+
+	public void Enter()
+	{
+		enabled = true;
+	}
+
+	public void Exit()
+	{
+		enabled = false;
+		Next = null;
+	}
+
+	public IPlayerState BackToSafe(Player player)
+	{
+		t = SafeT;
+		return Aligner.Align(currentRope.Path.GetPosition(t), this);
+	}
+
 }

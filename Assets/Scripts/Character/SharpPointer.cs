@@ -2,46 +2,93 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-public class SharpPointer : MonoBehaviour
+public class SharpPointer : MonoBehaviour, IPlayerState, ISafe
 {
-    [SerializeField][Range(0, 5)] float checkRadius = 1f;
-    SharpPoint[] SharpPoints => FindObjectsOfType<SharpPoint>();
+	[SerializeField][Range(0, 5)] float checkRadius = 1f;
+	SharpPoint[] SharpPoints => FindObjectsByType<SharpPoint>(FindObjectsSortMode.None);
+	Aligner Aligner => GetComponent<Aligner>();
 
-    public bool Check()
-    {
-        var closest = GetClosest();
-        if (closest)
-        {
-            if (HorizontalDistance(transform.position, closest.Point) < checkRadius)
-            {
-                return true;
-            }
-        }
+	Mover Mover => GetComponent<Mover>();
 
-        return false;
-    }
+	Player Player => GetComponent<Player>();
 
-    public SharpPoint GetClosest()
-    {
-        SharpPoint closest = null;
-        float closestDistance = float.MaxValue;
-        foreach (var point in SharpPoints)
-        {
+	public IPlayerState Next { get; private set; }
 
-            if (point.Point.y < transform.position.y && HorizontalDistance(transform.position, point.Point) < closestDistance)
-            {
-                closest = point;
-                closestDistance = Vector3.Distance(transform.position, point.Point);
-            }
-        }
+	SharpPoint safeSharpPoint;
 
-        return closest;
-    }
+	public IPlayerState Check()
+	{
+		var closest = GetClosest();
+		if (closest)
+		{
+			if (transform.position.HorizontalDitance(closest.Point) < checkRadius)
+			{
+				safeSharpPoint = closest;
+				return Aligner.Align(closest.Point, this);
+			}
+		}
 
-    float HorizontalDistance(Vector3 a, Vector3 b)
-    {
-        return Vector2.Distance(new Vector2(a.x, a.z), new Vector2(b.x, b.z));
-    }
+		return null;
+	}
 
+	void Awake()
+	{
+		Exit();
+	}
+
+	private void FixedUpdate()
+	{
+		Mover.Steer(Player.Direction);
+	}
+
+	public IPlayerState Attach()
+	{
+		var closest = GetClosest();
+		Aligner.Align(closest.Point, this);
+		return Aligner;
+	}
+
+	public SharpPoint GetClosest()
+	{
+		SharpPoint closest = null;
+		float closestDistance = float.MaxValue;
+		foreach (var point in SharpPoints)
+		{
+
+			if (point.Point.y < transform.position.y && transform.position.HorizontalDitance(point.Point) < closestDistance)
+			{
+				closest = point;
+				closestDistance = Vector3.Distance(transform.position, point.Point);
+			}
+		}
+
+		return closest;
+	}
+
+	void OnJump()
+	{
+		if (enabled)
+		{
+			Mover.JumpWithInertia(Player.Direction);
+			Next = Mover;
+		}
+	}
+
+	public void Enter()
+	{
+		enabled = true;
+	}
+
+	public void Exit()
+	{
+		Next = null;
+		enabled = false;
+	}
+
+	public IPlayerState BackToSafe(Player player)
+	{
+		return Aligner.Align(safeSharpPoint.Point, this);
+	}
 }

@@ -24,7 +24,5 @@ public class SafeGroundChecker : MonoBehaviour
             return;
         }
 
-        transform.position = currentSafeGround.Position;
-        OnSetSafe?.Invoke(currentSafeGround.Position);
     }
 }

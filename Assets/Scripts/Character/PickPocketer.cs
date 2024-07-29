@@ -9,7 +9,7 @@ public class PickPocketer : MonoBehaviour
     [SerializeField] int minCoins;
     [SerializeField] int maxCoins;
 
-    Pocket[] Pockets => FindObjectsOfType<Pocket>();
+    Pocket[] Pockets => FindObjectsByType<Pocket>(FindObjectsSortMode.None);
     Inventory Inventory => GetComponent<Inventory>();
     public bool Check()
     {

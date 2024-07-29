@@ -9,7 +9,7 @@ public class PlayerHud : MonoBehaviour
     [SerializeField] Image image;
     [SerializeField] TextMeshProUGUI moneyText;
 
-    Inventory Inventory => FindObjectOfType<Inventory>();
+    Inventory Inventory => FindAnyObjectByType<Inventory>();
 
     private void Start()
     {

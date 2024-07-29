@@ -2,77 +2,115 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Playables;
 
-public class Aligner : MonoBehaviour
+public class Aligner : MonoBehaviour, IPlayerState
 {
-    [SerializeField] CharacterController characterController;
-    [SerializeField] float jumpHeight;
-    [SerializeField] float gravity = 20;
-    [SerializeField] float alignSpeed = 10f;
+	[SerializeField] CharacterController characterController;
+	[SerializeField] float gravity = 20;
+	[SerializeField] float minJumpHeight = 2;
+	[SerializeField] float alignSpeed = 10f;
 
-    Vector3 startPosition;
-    Vector3 endPosition;
+	Vector3 startPosition;
+	Vector3 endPosition;
 
-    float elapsedTime;
-    float time = -1;
+	float elapsedTime;
+	float time = -1;
 
-    float yPos;
-    float yVelocity;
+	float yPos;
+	float yVelocity;
 
-    Action callbackAction;
+	Action callbackAction;
 
-    bool aligning;
+	bool aligning;
 
-    private void Awake()
-    {
-        aligning = false;
-    }
+	public IPlayerState Next { get; private set; }
 
-    public void Align(Vector3 position, Action callback)
-    {
-        callbackAction = callback;
+	private void Awake()
+	{
+		aligning = false;
+	}
 
-        startPosition = transform.position;
-        endPosition = position;
+	public IPlayerState Align(Vector3 position, IPlayerState next)
+	{
+		if (aligning)
+		{
+			return this;
+		}
 
-        var jumpCorrection = endPosition.y - startPosition.y;
-        if (jumpCorrection < 0)
-        {
-            jumpCorrection = 0;
-        }
+		Align(position, () => Next = next);
+		return this;
+	}
 
-        yVelocity = Mathf.Sqrt(2 * gravity * (jumpHeight + jumpCorrection));
-        yPos = startPosition.y;
+	public void Align(Vector3 position, Action callback)
+	{
+		callbackAction = callback;
 
-        elapsedTime = 0;
-        time = Vector3.Distance(startPosition, endPosition) / alignSpeed;
-        aligning = true;
-    }
+		startPosition = transform.position;
+		endPosition = position;
 
-    private void FixedUpdate()
-    {
-        if (aligning)
-        {
-            if (elapsedTime < time)
-            {
-                elapsedTime += Time.fixedDeltaTime;
-            }
+		var distance = startPosition.HorizontalDitance(endPosition);
+		if (distance < 0.1f)
+		{
+			time = 0.1f;
+		}
+		else
+		{
+			time = distance / alignSpeed;
+		}
 
-            var pos = Vector3.Lerp(startPosition, endPosition, elapsedTime / time);
+		float a = endPosition.y - startPosition.y;
+		float b = Mathf.Pow(time * 0.5f, 2) * gravity * 0.5f;
 
-            yVelocity -= gravity * Time.fixedDeltaTime;
-            yPos += yVelocity * Time.fixedDeltaTime;
-            pos.y = yPos;
+		float jumpHeight = a + b;
+		if (jumpHeight < minJumpHeight)
+		{
+			jumpHeight = minJumpHeight;
+		}
 
-            transform.position = pos;
-            
-            if (yPos <= endPosition.y)
-            {
-                pos.y = endPosition.y;
-                time = -1;
-                callbackAction?.Invoke();
-                aligning = false;
-            }
-        }
-    }
+		yVelocity = Mathf.Sqrt(2 * gravity * (jumpHeight));
+		yPos = startPosition.y;
+
+		elapsedTime = 0;
+		aligning = true;
+	}
+
+	private void FixedUpdate()
+	{
+		if (aligning)
+		{
+			if (elapsedTime < time)
+			{
+				elapsedTime += Time.fixedDeltaTime;
+			}
+
+			var pos = Vector3.Lerp(startPosition, endPosition, elapsedTime / time);
+
+			yVelocity -= gravity * Time.fixedDeltaTime;
+			yPos += yVelocity * Time.fixedDeltaTime;
+			pos.y = yPos;
+
+			transform.position = pos;
+
+			if (transform.position.HorizontalDitance(endPosition) < 0.1f && yPos <= endPosition.y)
+			{
+				callbackAction?.Invoke();
+				aligning = false;
+			}
+		}
+	}
+	public void Enter()
+	{
+
+	}
+
+	public void Exit()
+	{
+		Next = null;
+	}
+
+	public IPlayerState Check()
+	{
+		throw new NotImplementedException();
+	}
 }

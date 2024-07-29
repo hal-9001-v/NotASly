@@ -12,7 +12,7 @@ public class SightSensor : BaseSensor
     [SerializeField][Range(1, 180)] private float angle = 45;
 
     [SerializeField] LayerMask sceneMask;
-    SightSensorTrigger[] SightSensorTriggers => FindObjectsOfType<SightSensorTrigger>().Where((trigger) => trigger.CanBeSensed).ToArray();
+    SightSensorTrigger[] SightSensorTriggers => FindObjectsByType<SightSensorTrigger>(FindObjectsSortMode.None).Where((trigger) => trigger.CanBeSensed).ToArray();
 
 
     public List<SightSensorTrigger> TriggersOnSight { get; private set; }

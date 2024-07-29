@@ -1,78 +1,95 @@
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class Venter : MonoBehaviour
+public class Venter : MonoBehaviour, IPlayerState
 {
-    [Header("Settings")]
-    [SerializeField] float speed = 6f;
-    [SerializeField] float gravity = 20f;
-    [SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
-    [SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
-    [SerializeField] Transform body;
-    [SerializeField] Transform cameraLookAt;
+	[Header("Settings")]
+	[SerializeField] float speed = 6f;
+	[SerializeField] float gravity = 20f;
+	[SerializeField][Range(0, 1)] float ventControllerHeight = 0.5f;
+	[SerializeField][Range(0, 1)] float ventControllerRadius = 0.5f;
+	[SerializeField] Transform body;
+	[SerializeField] Transform cameraLookAt;
 
-    bool isInside;
+	bool isInside;
 
-    CharacterController CharacterController => GetComponent<CharacterController>();
-    SightSensorTrigger SightTrigger => GetComponent<SightSensorTrigger>();
+	CharacterController CharacterController => GetComponent<CharacterController>();
+	Mover Mover => GetComponent<Mover>();
+	SightSensorTrigger SightTrigger => GetComponent<SightSensorTrigger>();
+	CameraSelector CameraSelector => FindAnyObjectByType<CameraSelector>();
+	Player Player => GetComponent<Player>();
 
-    float defaultControllerHeight;
-    float defaultControllerRadius;
+	public IPlayerState Next { get; private set; }
 
-    private void Awake()
-    {
-        defaultControllerHeight = CharacterController.height;
-        defaultControllerRadius = CharacterController.radius;
-    }
+	float defaultControllerHeight;
+	float defaultControllerRadius;
 
-    public bool Check()
-    {
-        if (isInside)
-        {
-            return true;
-        }
+	private void Awake()
+	{
+		defaultControllerHeight = CharacterController.height;
+		defaultControllerRadius = CharacterController.radius;
+		Exit();
+	}
 
-        return false;
-    }
+	public IPlayerState Check()
+	{
+		if (isInside)
+		{
+			return this;
+		}
 
-    public void Attach()
-    {
-        CharacterController.height = ventControllerHeight;
-        CharacterController.radius = ventControllerRadius;
-    }
+		return null;
+	}
 
-    public void Release()
-    {
-        CharacterController.height = defaultControllerHeight;
-        CharacterController.radius = defaultControllerRadius;
-    }
+	private void Update()
+	{
+		Move(Player.Direction);
 
-    public void Move(Vector3 direction)
-    {
-        var velocity = direction * speed + Vector3.down * gravity;
-        CharacterController.Move(velocity * Time.deltaTime);
+		if (Check() == null)
+		{
+			Next = Mover;
+		}
+	}
 
-        var lookAt = cameraLookAt.forward;
-        lookAt.y = 0;
-        lookAt.Normalize();
-        body.rotation = Quaternion.LookRotation(lookAt, Vector3.up);
-    }
+	public void Move(Vector3 direction)
+	{
+		var velocity = direction * speed + Vector3.down * gravity;
+		CharacterController.Move(velocity * Time.deltaTime);
 
-    public void EnterVent()
-    {
-        isInside = true;
-        SightTrigger.CanBeSensed = false;
-    }
+		var lookAt = cameraLookAt.forward;
+		lookAt.y = 0;
+		lookAt.Normalize();
+		body.rotation = Quaternion.LookRotation(lookAt, Vector3.up);
+	}
 
-    public void ExitVent()
-    {
-        isInside = false;
-        SightTrigger.CanBeSensed = true;
-    }
+	public void EnterVent() => isInside = true;
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, ventControllerHeight);
-    }
+	public void ExitVent() => isInside = false;
+
+	public void Enter()
+	{
+		CharacterController.height = ventControllerHeight;
+		CharacterController.radius = ventControllerRadius;
+		SightTrigger.CanBeSensed = false;
+		CameraSelector.UseVentCamera();
+
+		enabled = true;
+	}
+
+	public void Exit()
+	{
+		CharacterController.height = defaultControllerHeight;
+		CharacterController.radius = defaultControllerRadius;
+		SightTrigger.CanBeSensed = true;
+
+		enabled = false;
+		Next = null;
+	}
+
+	private void OnDrawGizmos()
+	{
+		Gizmos.color = Color.red;
+		Gizmos.DrawWireSphere(transform.position, ventControllerHeight);
+	}
+
 }

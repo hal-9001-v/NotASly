@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FallRoper : MonoBehaviour, IPathFollower
+public class Slider : MonoBehaviour, IPlayerState
 {
     public bool Attatched => currentRope != null;
 
@@ -13,9 +13,12 @@ public class FallRoper : MonoBehaviour, IPathFollower
 
     FallRope currentRope;
 
-    FallRope[] Ropes => FindObjectsOfType<FallRope>();
+    FallRope[] Ropes => FindObjectsByType<FallRope>(FindObjectsSortMode.None);
+    Player Player => GetComponent<Player>();
 
-    float t;
+	public IPlayerState Next => throw new System.NotImplementedException();
+
+	float t;
 
     public void Attach()
     {
@@ -26,10 +29,17 @@ public class FallRoper : MonoBehaviour, IPathFollower
         }
     }
 
-    public bool Check()
+    public IPlayerState Check()
     {
         var closest = GetClosestPath();
-        return closest != null;
+        if (closest != null)
+        {
+			return this;
+		}
+		else
+        {
+			return null;
+		}
     }
 
     public void Dettach()
@@ -71,4 +81,14 @@ public class FallRoper : MonoBehaviour, IPathFollower
     {
         return currentRope.GetClosestPoint(transform.position);
     }
+
+	public void Enter()
+	{
+		throw new System.NotImplementedException();
+	}
+
+	public void Exit()
+	{
+		throw new System.NotImplementedException();
+	}
 }

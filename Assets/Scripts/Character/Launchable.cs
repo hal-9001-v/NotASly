@@ -51,7 +51,7 @@ public class Launchable : MonoBehaviour
         if (isLaunched)
         {
             Velocity += Vector3.down * gravity * Time.fixedDeltaTime;
-            Rigidbody.velocity = Velocity;
+            Rigidbody.linearVelocity = Velocity;
 
             GroundCheck.SetYSpeed(Velocity.y);
             if (GroundCheck.IsGrounded)
